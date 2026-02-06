@@ -1,6 +1,7 @@
 "use client";
 
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -32,6 +33,7 @@ export default function TransactionsPage() {
           </Card>
         </div>
       </div>
+      <Footer />
     </>
   );
 }

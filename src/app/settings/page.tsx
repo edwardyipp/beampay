@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { EditProfileForm } from "@/components/EditProfileForm";
 import { ChangePasswordForm } from "@/components/ChangePasswordForm";
 import { ManageCardsSection } from "@/components/ManageCardsSection";
@@ -32,7 +33,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -93,6 +94,7 @@ export default function SettingsPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

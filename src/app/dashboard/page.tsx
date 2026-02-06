@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 import { BalanceCard } from "@/components/BalanceCard";
-import { TopUpForm } from "@/components/TopUpForm";
-import { SendForm } from "@/components/SendForm";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import {
   Card,
@@ -16,7 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowRight, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
@@ -41,31 +41,20 @@ export default function DashboardPage() {
           {/* Balance Card */}
           <BalanceCard />
 
-          {/* Actions Row */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Top Up</CardTitle>
-                <CardDescription>
-                  Add funds to your wallet using a credit card
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <TopUpForm />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Send Money</CardTitle>
-                <CardDescription>
-                  Transfer funds to another user
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <SendForm />
-              </CardContent>
-            </Card>
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <Link href="/top-up">
+              <Button className="w-full h-16" size="lg">
+                <ArrowDownLeft className="mr-2 h-5 w-5" />
+                Top Up
+              </Button>
+            </Link>
+            <Link href="/transfer">
+              <Button className="w-full h-16" size="lg">
+                <ArrowUpRight className="mr-2 h-5 w-5" />
+                Transfer
+              </Button>
+            </Link>
           </div>
 
           {/* Transaction History - Recent 3 */}
@@ -73,9 +62,9 @@ export default function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>Recent Transactions</CardTitle>
+                  <CardTitle>Activities</CardTitle>
                   <CardDescription>
-                    Your latest transactions
+                    Your latest activities
                   </CardDescription>
                 </div>
                 <Link
@@ -93,6 +82,7 @@ export default function DashboardPage() {
           </Card>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

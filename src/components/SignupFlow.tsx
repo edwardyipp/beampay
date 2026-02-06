@@ -75,10 +75,13 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     useRef<HTMLInputElement>(null),
   ];
 
-  // Auto-focus first code input on step 4
+  // Auto-focus first code input on step 4, first PIN input on step 5
   useEffect(() => {
     if (step === 4) {
       setTimeout(() => codeInputRefs[0].current?.focus(), 100);
+    }
+    if (step === 5) {
+      setTimeout(() => pinInputRefs[0].current?.focus(), 100);
     }
   }, [step]);
 
@@ -231,7 +234,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     if (step === 2 && !validateStep2()) return;
     if (step === 3 && !validateStep3()) return;
     if (step === 4 && !validateStep4()) return;
-    if (step === 6) {
+    if (step === 5) {
       handleSubmit();
       return;
     }
@@ -254,7 +257,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
         email,
         password,
         pin.join(""),
-        currency,
+        "USD", // Always use USD for now
         profilePicture || undefined,
         marketingConsent,
         legalConsentDate
@@ -282,11 +285,10 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
           {step === 2 && "Create a secure password"}
           {step === 3 && "Tell us about yourself"}
           {step === 4 && "Verify your email"}
-          {step === 5 && "Choose your currency"}
-          {step === 6 && "Final steps"}
+          {step === 5 && "Final steps"}
         </CardTitle>
         <CardDescription className="text-center">
-          Step {step} of 6
+          Step {step} of 5
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -298,6 +300,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
               <Input
                 id="email"
                 type="email"
+                autoFocus
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -343,6 +346,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
               <Input
                 id="password"
                 type="password"
+                autoFocus
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -389,6 +393,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
               <Input
                 id="firstName"
                 type="text"
+                autoFocus
                 placeholder="John"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -485,50 +490,8 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
           </div>
         )}
 
-        {/* Step 5: Currency Selection */}
+        {/* Step 5: Profile Picture + PIN */}
         {step === 5 && (
-          <div className="space-y-4">
-            <p className="text-sm text-center text-gray-600">
-              This will be your wallet's default currency
-            </p>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {currencies.map((curr) => (
-                <button
-                  key={curr.code}
-                  onClick={() => setCurrency(curr.code)}
-                  className={`p-4 border-2 rounded-lg text-center hover:border-primary transition-colors ${
-                    currency === curr.code
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-200"
-                  }`}
-                >
-                  <div className="text-3xl mb-2">{curr.flag}</div>
-                  <div className="font-bold text-sm">{curr.code}</div>
-                  <div className="text-xs text-gray-500">{curr.name}</div>
-                  {currency === curr.code && (
-                    <Check className="w-4 h-4 text-primary mx-auto mt-2" />
-                  )}
-                </button>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Button
-                onClick={handleBack}
-                variant="ghost"
-                className="w-full"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
-              <Button onClick={handleNext} className="w-full">
-                Continue
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Step 6: Profile Picture + PIN */}
-        {step === 6 && (
           <div className="space-y-6">
             <div className="space-y-3">
               <Label>Choose a profile picture (optional)</Label>

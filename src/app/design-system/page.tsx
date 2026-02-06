@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -356,6 +357,7 @@ export default function DesignSystemPage() {
           </section>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

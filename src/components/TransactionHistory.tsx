@@ -50,7 +50,7 @@ export function TransactionHistory({ limit }: TransactionHistoryProps = {}) {
 
               <div>
                 <p className="font-medium text-sm dark:text-gray-200">
-                  {isTopUp ? "Top Up" : "Sent Money"}
+                  {isTopUp ? "Top Up" : "Transfer"}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">{transaction.description}</p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">

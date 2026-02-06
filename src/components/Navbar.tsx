@@ -51,8 +51,8 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Profile Picture */}
-            <div className="flex items-center space-x-3">
+            {/* Profile Picture - Clickable to Settings */}
+            <Link href="/settings" className="flex items-center space-x-3 hover:opacity-80 transition-opacity">
               {currentUser.profilePicture ? (
                 currentUser.profilePicture.startsWith("data:") ? (
                   <img
@@ -75,7 +75,7 @@ export function Navbar() {
               <div className="hidden sm:block text-sm text-gray-700 dark:text-gray-300">
                 <span className="font-medium">{displayName}</span>
               </div>
-            </div>
+            </Link>
 
             {/* Theme Toggle */}
             <ThemeToggle />
