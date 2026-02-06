@@ -12,82 +12,59 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Logo } from "@/components/Logo";
+import { SignupFlow } from "@/components/SignupFlow";
+import { toast } from "sonner";
 
 export default function LoginPage() {
-  const { login, signup } = useAuth();
+  const { login } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      if (isSignUp) {
-        // For simplified signup, use default values for pin and currency
-        await signup(
-          firstName,
-          lastName,
-          email,
-          password,
-          "0000", // Default PIN
-          "USD" // Default currency
-        );
-      } else {
-        await login(email, password);
-      }
+      await login(email, password);
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleForgotPassword = () => {
+    toast.info("Password reset is not available in this demo. Try creating a new account or contact support.");
+  };
+
+  if (isSignUp) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+        <div className="w-full max-w-md">
+          <SignupFlow onSwitchToLogin={() => setIsSignUp(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
+          <div className="flex items-center justify-center mb-4">
+            <Logo className="text-3xl" />
+          </div>
           <CardTitle className="text-2xl font-bold text-center">
-            {isSignUp ? "Create an account" : "Welcome back"}
+            Welcome back
           </CardTitle>
           <CardDescription className="text-center">
-            {isSignUp
-              ? "Enter your details to create your wallet"
-              : "Enter your credentials to access your wallet"}
+            Enter your credentials to access your wallet
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {isSignUp && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input
-                    id="firstName"
-                    type="text"
-                    placeholder="John"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input
-                    id="lastName"
-                    type="text"
-                    placeholder="Doe"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
-                  />
-                </div>
-              </>
-            )}
-
+          <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -101,7 +78,16 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="text-sm text-primary hover:underline"
+                >
+                  Forgot password?
+                </button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -111,46 +97,24 @@ export default function LoginPage() {
                 required
                 minLength={6}
               />
-              {isSignUp && (
-                <p className="text-xs text-gray-500">
-                  Must be at least 6 characters
-                </p>
-              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading
-                ? "Please wait..."
-                : isSignUp
-                ? "Sign Up"
-                : "Sign In"}
+              {isLoading ? "Please wait..." : "Sign In"}
             </Button>
           </form>
 
           <div className="mt-4 text-center text-sm">
-            {isSignUp ? (
-              <p>
-                Already have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(false)}
-                  className="text-primary font-medium hover:underline"
-                >
-                  Sign in
-                </button>
-              </p>
-            ) : (
-              <p>
-                Don't have an account?{" "}
-                <button
-                  type="button"
-                  onClick={() => setIsSignUp(true)}
-                  className="text-primary font-medium hover:underline"
-                >
-                  Sign up
-                </button>
-              </p>
-            )}
+            <p>
+              Don't have an account?{" "}
+              <button
+                type="button"
+                onClick={() => setIsSignUp(true)}
+                className="text-primary font-medium hover:underline"
+              >
+                Sign up
+              </button>
+            </p>
           </div>
         </CardContent>
       </Card>

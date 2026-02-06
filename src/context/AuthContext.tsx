@@ -7,6 +7,29 @@ import type { User, AuthContextType } from "@/types";
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Migration helper for old Phase 1 users
+const migrateUserIfNeeded = (user: any): User => {
+  // If user already has firstName, no migration needed
+  if (user.firstName) return user as User;
+
+  // Old Phase 1 user - migrate to new schema
+  const nameParts = (user.name || "User").split(" ");
+  const firstName = nameParts[0];
+  const lastName = nameParts.slice(1).join(" ") || "";
+
+  return {
+    ...user,
+    firstName,
+    lastName,
+    pin: "0000", // Default PIN for old users
+    currency: "USD",
+    emailVerified: true,
+    profilePicture: undefined,
+    marketingConsent: false,
+    legalConsentDate: undefined,
+  };
+};
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -19,7 +42,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const users = JSON.parse(localStorage.getItem("users") || "[]");
       const user = users.find((u: User) => u.id === sessionUserId);
       if (user) {
-        setCurrentUser(user);
+        const migratedUser = migrateUserIfNeeded(user);
+        setCurrentUser(migratedUser);
+        
+        // Update localStorage if migration occurred
+        if (!user.firstName) {
+          const updatedUsers = users.map((u: any) => 
+            u.id === sessionUserId ? migratedUser : u
+          );
+          localStorage.setItem("users", JSON.stringify(updatedUsers));
+        }
       }
     }
     setIsLoading(false);
@@ -54,7 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email,
         password, // In a real app, this would be hashed
         pin,
-        emailVerified: false,
+        emailVerified: true, // Set to true after mock verification
         currency,
         profilePicture,
         marketingConsent,
@@ -76,7 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setCurrentUser(newUser);
       toast.success("Account created successfully!");
-      router.push("/dashboard");
+      router.push("/security-info"); // Changed from /dashboard
       return true;
     } catch (error) {
       toast.error("Failed to create account");
@@ -96,10 +128,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      localStorage.setItem("currentUserId", user.id);
-      setCurrentUser(user);
+      const migratedUser = migrateUserIfNeeded(user);
+      localStorage.setItem("currentUserId", migratedUser.id);
+      setCurrentUser(migratedUser);
+      
+      // Update localStorage if migration occurred
+      if (!user.firstName) {
+        const updatedUsers = users.map((u: any) => 
+          u.id === migratedUser.id ? migratedUser : u
+        );
+        localStorage.setItem("users", JSON.stringify(updatedUsers));
+      }
+
       toast.success("Logged in successfully!");
-      router.push("/dashboard");
+      
+      // Check if security info has been dismissed
+      const dismissed = localStorage.getItem(`security-info-dismissed-${migratedUser.id}`);
+      if (!dismissed) {
+        router.push("/security-info");
+      } else {
+        router.push("/dashboard");
+      }
       return true;
     } catch (error) {
       toast.error("Failed to log in");
@@ -196,6 +245,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Remove session
     localStorage.removeItem("currentUserId");
+    
+    // Remove security info dismissed flag
+    localStorage.removeItem(`security-info-dismissed-${currentUser.id}`);
 
     setCurrentUser(null);
     toast.success("Account deleted successfully");
