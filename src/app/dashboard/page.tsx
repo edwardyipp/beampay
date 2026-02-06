@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { BalanceCard } from "@/components/BalanceCard";
@@ -15,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ArrowRight } from "lucide-react";
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
@@ -31,7 +33,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -66,16 +68,27 @@ export default function DashboardPage() {
             </Card>
           </div>
 
-          {/* Transaction History */}
+          {/* Transaction History - Recent 3 */}
           <Card>
             <CardHeader>
-              <CardTitle>Transaction History</CardTitle>
-              <CardDescription>
-                View all your recent transactions
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Recent Transactions</CardTitle>
+                  <CardDescription>
+                    Your latest transactions
+                  </CardDescription>
+                </div>
+                <Link
+                  href="/transactions"
+                  className="flex items-center gap-1 text-sm text-primary hover:underline"
+                >
+                  View All
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              <TransactionHistory />
+              <TransactionHistory limit={3} />
             </CardContent>
           </Card>
         </div>
