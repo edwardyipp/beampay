@@ -1,8 +1,15 @@
 export interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   password: string; // stored in localStorage (mocked auth)
+  pin: string; // 4-digit security PIN
+  emailVerified: boolean; // Step 4 verification
+  currency: string; // Step 5 selection (USD, EUR, etc.)
+  profilePicture?: string; // Step 6 upload or avatar selection (base64 or avatar ID)
+  marketingConsent?: boolean; // Step 1 checkbox
+  legalConsentDate?: string; // Step 3 checkbox timestamp
 }
 
 export interface SavedCard {
@@ -30,14 +37,32 @@ export interface WalletData {
 export interface AuthContextType {
   currentUser: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  signup: (name: string, email: string, password: string) => Promise<boolean>;
+  signup: (
+    firstName: string,
+    lastName: string,
+    email: string,
+    password: string,
+    pin: string,
+    currency: string,
+    profilePicture?: string,
+    marketingConsent?: boolean,
+    legalConsentDate?: string
+  ) => Promise<boolean>;
   logout: () => void;
-  updateProfile: (name: string, email: string) => Promise<boolean>;
+  updateProfile: (firstName: string, lastName: string, email: string) => Promise<boolean>;
   changePassword: (
     currentPassword: string,
     newPassword: string
   ) => Promise<boolean>;
   deleteAccount: () => void;
+}
+
+export interface PinVerificationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
+  title: string;
+  description: string;
 }
 
 export interface WalletContextType {
