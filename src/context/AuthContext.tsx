@@ -26,9 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signup = async (
-    name: string,
+    firstName: string,
+    lastName: string,
     email: string,
-    password: string
+    password: string,
+    pin: string,
+    currency: string,
+    profilePicture?: string,
+    marketingConsent?: boolean,
+    legalConsentDate?: string
   ): Promise<boolean> => {
     try {
       // Get existing users
@@ -43,9 +49,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // Create new user
       const newUser: User = {
         id: crypto.randomUUID(),
-        name,
+        firstName,
+        lastName,
         email,
         password, // In a real app, this would be hashed
+        pin,
+        emailVerified: false,
+        currency,
+        profilePicture,
+        marketingConsent,
+        legalConsentDate,
       };
 
       // Save to localStorage
@@ -102,7 +115,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProfile = async (
-    name: string,
+    firstName: string,
+    lastName: string,
     email: string
   ): Promise<boolean> => {
     if (!currentUser) return false;
@@ -121,12 +135,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Update user
       const updatedUsers = users.map((u: User) =>
-        u.id === currentUser.id ? { ...u, name, email } : u
+        u.id === currentUser.id ? { ...u, firstName, lastName, email } : u
       );
 
       localStorage.setItem("users", JSON.stringify(updatedUsers));
 
-      const updatedUser = { ...currentUser, name, email };
+      const updatedUser = { ...currentUser, firstName, lastName, email };
       setCurrentUser(updatedUser);
 
       toast.success("Profile updated successfully!");
