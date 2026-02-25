@@ -10,7 +10,7 @@ export function SavedCards() {
 
   if (savedCards.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         <p>No saved cards yet</p>
         <p className="text-sm mt-1">Save a card when topping up for faster payments</p>
       </div>
@@ -22,15 +22,15 @@ export function SavedCards() {
       {savedCards.map((card) => (
         <div
           key={card.id}
-          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+          className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-accent transition-colors"
         >
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-8 bg-gradient-to-br from-gray-700 to-gray-900 rounded flex items-center justify-center">
-              <div className="w-6 h-6 bg-gray-400 rounded-full opacity-50"></div>
+            <div className="w-10 h-8 bg-gradient-to-br from-muted to-background rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-muted-foreground rounded-full opacity-50"></div>
             </div>
             <div>
               <p className="font-medium text-sm">{card.label}</p>
-              <p className="text-xs text-gray-500">Expires {card.expiry}</p>
+              <p className="text-xs text-muted-foreground">Expires {card.expiry}</p>
             </div>
           </div>
           <Button

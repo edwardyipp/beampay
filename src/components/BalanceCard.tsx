@@ -18,7 +18,7 @@ export function BalanceCard() {
   const idrAmount = convertUsdToIdr(balance);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white dark:from-blue-700 dark:to-blue-900">
+    <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white dark:from-primary-dark dark:to-[oklch(0.3_0.18_122.4)] dark:text-primary-foreground">
       <CardHeader>
         <CardTitle className="text-sm font-medium opacity-90">
           Total Balance

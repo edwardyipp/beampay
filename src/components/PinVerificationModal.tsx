@@ -163,7 +163,7 @@ export function PinVerificationModal({
 
           {/* Lockout Timer */}
           {isLocked && lockoutTime && (
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-sm text-center text-muted-foreground">
               Try again in {getRemainingTime()}
             </p>
           )}

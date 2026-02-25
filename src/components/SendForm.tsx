@@ -88,7 +88,7 @@ export function SendForm() {
             onChange={(e) => setAmount(e.target.value)}
             required
           />
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             Available balance: ${balance.toFixed(2)}
           </p>
         </div>

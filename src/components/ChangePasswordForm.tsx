@@ -82,7 +82,7 @@ export function ChangePasswordForm() {
             required
             minLength={6}
           />
-          <p className="text-xs text-gray-500 dark:text-gray-400">Must be at least 6 characters</p>
+          <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
         </div>
 
         <div className="space-y-2">

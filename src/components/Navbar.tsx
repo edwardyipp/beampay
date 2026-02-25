@@ -21,7 +21,7 @@ export function Navbar() {
     : currentUser.email.charAt(0).toUpperCase();
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b dark:border-gray-800">
+    <nav className="bg-background border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center space-x-8">
@@ -31,19 +31,19 @@ export function Navbar() {
             <div className="hidden md:flex space-x-4">
               <Link
                 href="/dashboard"
-                className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
+                className="text-muted-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
               >
                 Dashboard
               </Link>
               <Link
                 href="/transactions"
-                className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
+                className="text-muted-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
               >
                 Transactions
               </Link>
               <Link
                 href="/settings"
-                className="text-gray-700 dark:text-gray-300 hover:text-primary dark:hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
+                className="text-muted-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium"
               >
                 Settings
               </Link>
@@ -68,11 +68,11 @@ export function Navbar() {
                   />
                 )
               ) : (
-                <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold">
+                <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-bold">
                   {initials}
                 </div>
               )}
-              <div className="hidden sm:block text-sm text-gray-700 dark:text-gray-300">
+              <div className="hidden sm:block text-sm text-muted-foreground">
                 <span className="font-medium">{displayName}</span>
               </div>
             </Link>
