@@ -26,7 +26,7 @@ export default function SecurityInfoPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 px-4">
+    <div className="min-h-screen bg-background py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header Card */}
         <Card>
@@ -57,7 +57,7 @@ export default function SecurityInfoPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1">End-to-End Encryption</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   All your data and transactions are encrypted end-to-end, ensuring only you can access your information.
                 </p>
               </div>
@@ -71,7 +71,7 @@ export default function SecurityInfoPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Security by Design</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Built with security best practices, including PIN verification for sensitive actions and secure session management.
                 </p>
               </div>
@@ -85,7 +85,7 @@ export default function SecurityInfoPage() {
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Fraud Protection</h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                   Real-time fraud monitoring and suspicious activity detection to keep your account safe.
                 </p>
               </div>
@@ -102,31 +102,31 @@ export default function SecurityInfoPage() {
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   Never share your PIN or password with anyone
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   Always log out on shared devices
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   Verify recipient details before sending money
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   Enable notifications to monitor account activity
                 </p>
               </div>
               <div className="flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-gray-700 dark:text-gray-300">
+                <p className="text-sm text-muted-foreground">
                   Contact support immediately if you notice suspicious activity
                 </p>
               </div>

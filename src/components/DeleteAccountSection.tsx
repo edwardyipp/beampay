@@ -33,11 +33,11 @@ export function DeleteAccountSection() {
 
   return (
     <>
-      <div className="border-t dark:border-gray-700 pt-6">
+      <div className="border-t border-border pt-6">
         <div className="space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+            <p className="text-sm text-muted-foreground mt-1">
               Once you delete your account, there is no going back. This will permanently delete
               your account, wallet balance, transaction history, and saved cards.
             </p>

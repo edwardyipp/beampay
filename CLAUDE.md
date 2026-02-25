@@ -240,6 +240,8 @@ Place in `src/components/`. Use the `cn()` helper for conditional Tailwind class
 - Use `cn()` from `src/lib/utils.ts` for conditional class merging.
 - Dark-mode variants use the `dark:` prefix (class-based, not media-query).
 - Follow the existing spacing/color scale — do not introduce arbitrary values unless necessary.
+- **Always use CSS variable-based Tailwind classes** (`bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`) instead of hardcoded palette classes (`bg-gray-900`, `text-gray-600`, `border-gray-700`). Hardcoded classes bypass the theme system and won't pick up dark mode colors.
+- **Semantic colors are the exception**: red (`text-red-600`, `bg-red-600`), green (`text-green-600`, `bg-green-100`), blue (`bg-blue-100`, `text-blue-600`), amber — when used for transaction type indicators, destructive actions, or status icons — are intentional and should stay hardcoded.
 
 ### Components
 
@@ -260,6 +262,48 @@ Place in `src/components/`. Use the `cn()` helper for conditional Tailwind class
 - Components: PascalCase (e.g., `SendForm.tsx`).
 - Utilities/helpers: camelCase (e.g., `currency-utils.ts`).
 - Types: `index.ts` inside `src/types/`.
+
+---
+
+## Dark Theme
+
+The dark mode uses a **neon lime accent** palette (hue 122.4 in OKLCH). All CSS variables are defined in `src/app/globals.css`.
+
+### Key dark-mode variables
+
+| Variable | Value | Purpose |
+|---|---|---|
+| `--background` | `oklch(0.1 0.01 122.4)` | Deep black with subtle lime tint |
+| `--card` | `oklch(0.15 0.01 122.4)` | Slightly lighter surface |
+| `--primary` | `oklch(0.93 0.26 122.4)` | Neon lime ≈ RGB(209, 254, 23) |
+| `--primary-foreground` | `oklch(0 0 0)` | Black text on neon lime |
+| `--muted` | `oklch(0.2 0.02 122.4)` | De-emphasized surface |
+| `--muted-foreground` | `oklch(0.7 0 0)` | De-emphasized text |
+| `--border` | `oklch(1 0 0 / 0.15)` | Translucent white border |
+| `--ring` | `oklch(0.93 0.26 122.4)` | Lime focus ring |
+
+### Custom primary variations (dark only)
+
+These are registered in `@theme inline` and available as Tailwind utilities:
+
+| CSS variable | Tailwind class | Purpose |
+|---|---|---|
+| `--primary-light` | `bg-primary-light` / `text-primary-light` | Lighter lime for gradient endpoints |
+| `--primary-dark` | `bg-primary-dark` / `text-primary-dark` | Darker lime for gradient starts |
+| `--primary-ring` | `ring-primary-ring` | Lime focus ring |
+
+### Branded gradient pattern
+
+Branded text gradients (Logo, SignupFlow header) use:
+```tsx
+className="bg-gradient-to-r from-primary to-blue-600 dark:to-primary-light bg-clip-text text-transparent"
+```
+Light mode: dark gray → blue. Dark mode: neon lime → lighter lime.
+
+The BalanceCard uses:
+```tsx
+className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-primary-dark dark:to-[oklch(0.3_0.18_122.4)] dark:text-primary-foreground"
+```
 
 ---
 

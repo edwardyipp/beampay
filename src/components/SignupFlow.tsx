@@ -276,7 +276,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     <Card className="w-full">
       <CardHeader className="space-y-1">
         <div className="flex items-center justify-center mb-4">
-          <span className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+          <span className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 dark:to-primary-light bg-clip-text text-transparent">
             BeamPay
           </span>
         </div>
@@ -365,7 +365,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 required
                 minLength={6}
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Must be at least 6 characters
               </p>
             </div>
@@ -445,11 +445,11 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
         {/* Step 4: Email Verification */}
         {step === 4 && (
           <div className="space-y-4">
-            <p className="text-sm text-center text-gray-600">
+            <p className="text-sm text-center text-muted-foreground">
               We've sent a verification code to <strong>{email}</strong>
             </p>
             <div className="bg-primary/10 border border-primary/20 rounded-lg p-4 text-center">
-              <p className="text-xs text-gray-600 mb-1">Your code:</p>
+              <p className="text-xs text-muted-foreground mb-1">Your code:</p>
               <p className="text-2xl font-bold tracking-widest">
                 {verificationCode}
               </p>
@@ -511,7 +511,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                     />
                   )
                 ) : (
-                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-bold text-gray-400">
+                  <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center text-2xl font-bold text-muted-foreground">
                     {firstName.charAt(0)}
                     {lastName.charAt(0)}
                   </div>
@@ -525,7 +525,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                     className={`w-full aspect-square rounded-full border-2 ${
                       profilePicture === `avatar-${num}`
                         ? "border-primary"
-                        : "border-gray-200"
+                        : "border-border"
                     }`}
                   >
                     <img
@@ -555,7 +555,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
 
             <div className="space-y-3">
               <Label>Create your 4-digit security PIN</Label>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Required for transactions and sensitive actions
               </p>
               <div className="flex justify-center gap-3">
@@ -593,7 +593,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   />
                 ))}
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Choose a memorable 4-digit number
               </p>
             </div>
