@@ -2,47 +2,58 @@
 
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { getCurrencySymbol, convertUsdToIdr, formatCurrency } from "@/lib/currency-utils";
+import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
 
 export function BalanceCard() {
   const { balance } = useWallet();
   const { currentUser } = useAuth();
 
-  // Get user's currency symbol (default to USD)
   const userCurrency = currentUser?.currency || "USD";
   const currencySymbol = getCurrencySymbol(userCurrency);
-
-  // Calculate IDR equivalent (assuming balance is in USD)
   const idrAmount = convertUsdToIdr(balance);
 
   return (
-    <Card className="bg-gradient-to-br from-blue-600 to-blue-800 text-white dark:from-primary-dark dark:to-[oklch(0.3_0.18_122.4)] dark:text-primary-foreground">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium opacity-90">
-          Total Balance
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {/* Primary Balance */}
-          <div className="text-4xl font-bold">
-            {currencySymbol}{balance.toFixed(2)}
-          </div>
+    <div
+      className="relative overflow-hidden rounded-3xl p-6 min-h-[200px] flex flex-col justify-between"
+      style={{
+        background: `
+          radial-gradient(ellipse at 5% 5%, #a8e500, transparent 55%),
+          radial-gradient(ellipse at 95% 90%, #a8e500, transparent 50%),
+          radial-gradient(ellipse 100% 60% at 60% 25%, rgba(255,255,245,0.9), transparent 55%),
+          radial-gradient(ellipse 80% 50% at 30% 75%, rgba(250,248,225,0.85), transparent 50%),
+          #d0e860
+        `,
+      }}
+    >
+      {/* BeamPay logo */}
+      <div className="flex justify-end">
+        <img
+          src="/beampay-logo.svg"
+          alt="BeamPay"
+          className="h-[18px]"
+          style={{ filter: "brightness(0)", opacity: 0.35 }}
+        />
+      </div>
 
-          {/* IDR Equivalent (if user currency is not IDR) */}
-          {userCurrency !== "IDR" && (
-            <div className="text-sm opacity-80">
-              ≈ Rp {idrAmount.toLocaleString("id-ID", { maximumFractionDigits: 0 })}
-            </div>
-          )}
-
-          <Badge variant="secondary" className="bg-white/20 text-white hover:bg-white/30">
-            Available
-          </Badge>
-        </div>
-      </CardContent>
-    </Card>
+      {/* Balance */}
+      <div className="mt-auto pt-8">
+        {userCurrency !== "IDR" && (
+          <p className="text-sm font-medium mb-1" style={{ color: "rgba(70, 95, 10, 0.7)" }}>
+            {idrAmount.toLocaleString("en-US", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            })}{" "}
+            IDR
+          </p>
+        )}
+        <p className="text-[40px] font-bold text-gray-900 tracking-tight leading-none">
+          {currencySymbol}
+          {balance.toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}
+        </p>
+      </div>
+    </div>
   );
 }
