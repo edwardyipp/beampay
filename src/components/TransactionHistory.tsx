@@ -1,22 +1,23 @@
 "use client";
 
 import { useWallet } from "@/context/WalletContext";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown } from "lucide-react";
 import { convertUsdToIdr } from "@/lib/currency-utils";
 
 interface TransactionHistoryProps {
   limit?: number;
 }
 
+// Exact colors from the Figma design
 const avatarColors = [
-  "bg-rose-400",
-  "bg-blue-400",
-  "bg-amber-400",
-  "bg-emerald-400",
-  "bg-purple-400",
-  "bg-orange-400",
-  "bg-teal-400",
-  "bg-pink-400",
+  "bg-[#ec4899]",
+  "bg-[#3b82f6]",
+  "bg-[#eab308]",
+  "bg-[#a855f7]",
+  "bg-[#14b8a6]",
+  "bg-[#f97316]",
+  "bg-[#22c55e]",
+  "bg-[#ef4444]",
 ];
 
 function getColorForName(name: string): string {
@@ -99,29 +100,29 @@ export function TransactionHistory({ limit }: TransactionHistoryProps = {}) {
               {isTopUp ? (
                 <ArrowDown className="h-4 w-4 text-gray-600 dark:text-gray-300" />
               ) : (
-                <span className="text-xs font-bold text-white">
+                <span className="text-base font-medium text-white">
                   {initials}
                 </span>
               )}
             </div>
 
-            {/* Name & Date */}
+            {/* Name & Date — 16px name, 14px date (Figma css-d2rx8f / css-paf74l) */}
             <div className="flex-1 min-w-0">
-              <p className="font-medium text-sm text-foreground truncate">
+              <p className="font-medium text-base text-foreground truncate">
                 {isTopUp ? "Top Up" : displayName}
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {formatTransactionDate(transaction.date)}
               </p>
             </div>
 
-            {/* Amounts */}
+            {/* Amounts — 16px amount, 14px IDR, all text-foreground (Figma css-k985ld / css-hc81ev, color: #030712) */}
             <div className="text-right flex-shrink-0">
-              <p className={`font-semibold text-sm ${isTopUp ? "text-green-600" : "text-red-500"}`}>
+              <p className="font-medium text-base text-foreground">
                 {isTopUp ? "+" : "-"}
                 {transaction.amount.toFixed(2)} USD
               </p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-sm text-muted-foreground">
                 {isTopUp ? "+" : "-"}
                 {idrAmount.toLocaleString("en-US", {
                   minimumFractionDigits: 2,

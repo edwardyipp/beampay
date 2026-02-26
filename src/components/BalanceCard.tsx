@@ -1,5 +1,6 @@
 "use client";
 
+import { useTheme } from "next-themes";
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
@@ -7,60 +8,89 @@ import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
 export function BalanceCard() {
   const { balance } = useWallet();
   const { currentUser } = useAuth();
+  const { resolvedTheme } = useTheme();
 
   const userCurrency = currentUser?.currency || "USD";
   const currencySymbol = getCurrencySymbol(userCurrency);
   const idrAmount = convertUsdToIdr(balance);
+  const isIDRUser = userCurrency === "IDR";
+  const isDark = resolvedTheme === "dark";
 
-  // For IDR users, show the IDR-converted amount as primary; for others, show balance with symbol
-  const primaryDisplay =
-    userCurrency === "IDR"
-      ? `${idrAmount.toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })} IDR`
-      : `${currencySymbol}${balance.toLocaleString("en-US", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`;
+  // Small label shown above the main balance (matches Figma: IDR on top, USD below)
+  const secondaryLabel = isIDRUser
+    ? `$${balance.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`
+    : `${idrAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} IDR`;
+
+  // Large primary balance
+  const mainBalance = isIDRUser
+    ? `${idrAmount.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} IDR`
+    : `${currencySymbol}${balance.toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`;
+
+  // Light mode: Figma exact diagonal gradient. Dark mode: neon lime gradient.
+  const outerStyle = isDark
+    ? {
+        background:
+          "linear-gradient(to bottom right, oklch(0.85 0.26 122.4), oklch(0.3 0.18 122.4))",
+      }
+    : {
+        background:
+          "linear-gradient(135deg, rgba(255,255,255,0.7) 0%, rgba(236,255,168,0.85) 45%, rgba(227,255,125,0.925) 70%, rgba(217,255,81,1) 100%)",
+        backgroundColor: "#c6fe1e",
+        boxShadow: "-2px 6px 40px 0px rgba(0,0,0,0.15)",
+      };
 
   return (
     <div
-      className="relative overflow-hidden rounded-3xl p-6 min-h-[200px] flex flex-col justify-between"
-      style={{
-        background: `
-          radial-gradient(ellipse at 5% 5%, #a8e500, transparent 55%),
-          radial-gradient(ellipse at 95% 90%, #a8e500, transparent 50%),
-          radial-gradient(ellipse 100% 60% at 60% 25%, rgba(255,255,245,0.9), transparent 55%),
-          radial-gradient(ellipse 80% 50% at 30% 75%, rgba(250,248,225,0.85), transparent 50%),
-          #d0e860
-        `,
-      }}
+      className="rounded-[18px] p-[1px] min-h-[254px]"
+      style={outerStyle}
     >
-      {/* BeamPay logo */}
-      <div className="flex justify-end">
-        <img
-          src="/beampay-logo.svg"
-          alt="BeamPay"
-          className="h-[18px]"
-          style={{ filter: "brightness(0)", opacity: 0.35 }}
-        />
-      </div>
+      <div className="rounded-[17px] min-h-[252px] flex flex-col justify-between overflow-hidden">
+        {/* Logo — top right, 16px padding */}
+        <div className="flex justify-end p-4">
+          <img
+            src="/beampay-logo.svg"
+            alt="BeamPay"
+            className="w-[100px]"
+            style={{
+              filter: isDark ? "brightness(0) invert(1)" : "brightness(0)",
+              opacity: isDark ? 0.45 : 0.35,
+            }}
+          />
+        </div>
 
-      {/* Balance */}
-      <div className="mt-auto pt-8">
-        <p className="text-[40px] font-bold text-gray-900 tracking-tight leading-none">
-          {primaryDisplay}
-        </p>
-        {/* USD secondary — shown for all non-USD users */}
-        {userCurrency !== "USD" && (
-          <p className="text-sm font-medium mt-1.5" style={{ color: "rgba(70, 95, 10, 0.7)" }}>
-            ${balance.toLocaleString("en-US", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
+        {/* Balance — bottom left, 16px padding */}
+        <div className="p-4 flex flex-col items-start">
+          {/* Small secondary label: IDR for non-IDR users, USD for IDR users */}
+          <p
+            className="text-base font-normal"
+            style={{ color: isDark ? "oklch(0.85 0.26 122.4)" : "#618b00" }}
+          >
+            {secondaryLabel}
           </p>
-        )}
+          {/* Large primary balance */}
+          <p
+            className="font-semibold"
+            style={{
+              fontSize: "48px",
+              lineHeight: "56px",
+              color: isDark ? "oklch(0 0 0)" : "#2a2b2e",
+            }}
+          >
+            {mainBalance}
+          </p>
+        </div>
       </div>
     </div>
   );
