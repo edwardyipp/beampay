@@ -12,6 +12,18 @@ export function BalanceCard() {
   const currencySymbol = getCurrencySymbol(userCurrency);
   const idrAmount = convertUsdToIdr(balance);
 
+  // For IDR users, show the IDR-converted amount as primary; for others, show balance with symbol
+  const primaryDisplay =
+    userCurrency === "IDR"
+      ? `${idrAmount.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })} IDR`
+      : `${currencySymbol}${balance.toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })}`;
+
   return (
     <div
       className="relative overflow-hidden rounded-3xl p-6 min-h-[200px] flex flex-col justify-between"
@@ -37,22 +49,18 @@ export function BalanceCard() {
 
       {/* Balance */}
       <div className="mt-auto pt-8">
-        {userCurrency !== "IDR" && (
-          <p className="text-sm font-medium mb-1" style={{ color: "rgba(70, 95, 10, 0.7)" }}>
-            {idrAmount.toLocaleString("en-US", {
+        <p className="text-[40px] font-bold text-gray-900 tracking-tight leading-none">
+          {primaryDisplay}
+        </p>
+        {/* USD secondary — shown for all non-USD users */}
+        {userCurrency !== "USD" && (
+          <p className="text-sm font-medium mt-1.5" style={{ color: "rgba(70, 95, 10, 0.7)" }}>
+            ${balance.toLocaleString("en-US", {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
-            })}{" "}
-            IDR
+            })}
           </p>
         )}
-        <p className="text-[40px] font-bold text-gray-900 tracking-tight leading-none">
-          {currencySymbol}
-          {balance.toLocaleString("en-US", {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}
-        </p>
       </div>
     </div>
   );

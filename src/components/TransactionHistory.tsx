@@ -77,7 +77,7 @@ export function TransactionHistory({ limit }: TransactionHistoryProps = {}) {
   }
 
   return (
-    <div className="space-y-1">
+    <div className="divide-y divide-border">
       {displayedTransactions.map((transaction) => {
         const isTopUp = transaction.type === "topup";
         const idrAmount = convertUsdToIdr(transaction.amount);
@@ -117,12 +117,12 @@ export function TransactionHistory({ limit }: TransactionHistoryProps = {}) {
 
             {/* Amounts */}
             <div className="text-right flex-shrink-0">
-              <p className="font-semibold text-sm text-foreground">
+              <p className={`font-semibold text-sm ${isTopUp ? "text-green-600" : "text-red-500"}`}>
                 {isTopUp ? "+" : "-"}
                 {transaction.amount.toFixed(2)} USD
               </p>
               <p className="text-xs text-muted-foreground">
-                {isTopUp ? "" : "-"}
+                {isTopUp ? "+" : "-"}
                 {idrAmount.toLocaleString("en-US", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
