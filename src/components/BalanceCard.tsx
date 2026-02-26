@@ -214,11 +214,18 @@ export function BalanceCard() {
   // ── Derived styles ──────────────────────────────────────────────────────────
   const transformStyle: React.CSSProperties = {
     transform: `perspective(${PERSPECTIVE}px) rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) scale3d(${active ? SCALE_ACTIVE : 1}, ${active ? SCALE_ACTIVE : 1}, 1)`,
+    // During active interaction: no CSS transition — rAF drives updates at native 60fps.
+    // Applying a CSS transition here would make the browser interpolate ~600 intermediate
+    // states/sec (60 rAF updates × 0.1s ease), causing stutter on mid-range phones.
+    // On release: spring-back cubic-bezier easing snaps the card back smoothly.
     transition: active
-      ? "transform 0.1s ease-out, box-shadow 0.1s ease-out"
+      ? "none"
       : "transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.55s cubic-bezier(0.23, 1, 0.32, 1)",
     willChange: "transform",
     transformStyle: "preserve-3d",
+    // Prevent accidental text / logo selection while dragging on mobile
+    userSelect: "none",
+    WebkitUserSelect: "none",
   };
 
   const glareStyle: React.CSSProperties = {
