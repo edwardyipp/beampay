@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
   subsets: ["latin"],
+  axes: ["opsz"], // enables optical sizing (9..40 range, matches Google Fonts embed)
 });
 
 const geistMono = Geist_Mono({
