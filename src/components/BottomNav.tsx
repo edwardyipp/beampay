@@ -58,7 +58,7 @@ export function BottomNav() {
             <div className="pay-btn-outer">
               <div className="pay-btn-inner">
                 <ScanLine className="w-[32px] h-[32px]" />
-                <span className="text-[12px] font-medium">Pay</span>
+                <span className="text-[12px] font-medium leading-4">Pay</span>
               </div>
             </div>
           </div>

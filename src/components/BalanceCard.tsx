@@ -252,12 +252,13 @@ export function BalanceCard() {
       className="rounded-[18px] p-[1px] min-h-[254px] cursor-default"
       style={{ ...outerStyle, ...transformStyle }}
     >
-      <div className="rounded-[17px] min-h-[252px] flex flex-col justify-between overflow-hidden relative">
+      <div className="rounded-[17px] min-h-[252px] flex flex-col justify-between relative"
+           style={{ transformStyle: "preserve-3d" }}>
         {/* Glare overlay — tracks pointer/touch position */}
         <div style={glareStyle} aria-hidden />
 
         {/* Logo — top right, 16px padding */}
-        <div className="flex justify-end p-4" style={{ position: "relative", zIndex: 2 }}>
+        <div className="flex justify-end p-6" style={{ position: "relative", zIndex: 2, transform: "translateZ(40px)" }}>
           <img
             src="/beampay-logo.svg"
             alt="BeamPay"
@@ -270,7 +271,7 @@ export function BalanceCard() {
         </div>
 
         {/* Balance — bottom left, 16px padding */}
-        <div className="p-4 flex flex-col items-start" style={{ position: "relative", zIndex: 2 }}>
+        <div className="pl-[28px] pb-[22px] flex flex-col items-start" style={{ position: "relative", zIndex: 2, transform: "translateZ(60px)" }}>
           <p
             className="text-base font-normal"
             style={{ color: isDark ? "oklch(0.85 0.26 122.4)" : "#618b00" }}

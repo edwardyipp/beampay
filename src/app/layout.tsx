@@ -25,8 +25,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
+  drawer,
 }: Readonly<{
   children: React.ReactNode;
+  drawer: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -37,6 +39,7 @@ export default function RootLayout({
           <AuthProvider>
             <WalletProvider>
               {children}
+              {drawer}
               <Toaster />
             </WalletProvider>
           </AuthProvider>

@@ -145,14 +145,46 @@ Thin wrapper around `next-themes`. Components use Tailwind's `dark:` prefix for 
 
 ### SignupFlow (`src/components/SignupFlow.tsx`)
 
-Six-step registration wizard rendered on `/login`:
+Five-step registration wizard rendered on `/login`:
 
 1. Email + marketing consent
 2. Password creation
 3. Name + legal consent
 4. Email verification (mock 6-digit code via `generateVerificationCode()`)
-5. Currency selection
-6. Profile picture (avatar or upload) + 4-digit PIN creation
+5. Profile picture (avatar or upload) + 4-digit PIN creation
+
+> Currency selection was removed from the UI. All accounts default to `"USD"`.
+
+### PageHeader (`src/components/PageHeader.tsx`)
+
+Shared header used on all authenticated pages. Two modes:
+
+- **Avatar mode** (default): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`.
+- **Title mode** (`title` prop): Shows a plain page title (e.g., "Settings", "Activities"). Used on `/transactions` and `/settings`.
+
+### DrawerPage (`src/components/DrawerPage.tsx`)
+
+Slide-up drawer wrapper for overlay-style pages. Used on `/transfer` and `/top-up`.
+
+- Slides up from bottom with `animate-in slide-in-from-bottom` (tw-animate-css)
+- Slides down on close with `animate-out slide-out-to-bottom`
+- Dark backdrop overlay (click to close)
+- Rounded top corners (`rounded-t-[20px]`), drag handle pill, title + close button (X icon)
+- Scrollable content area (`h-[90vh]`)
+- Close button calls `router.back()` — returns to the referring page
+- No BottomNav (drawer overlays the previous page)
+
+These routes use **Next.js Intercepting Routes** (`@drawer` parallel slot with `(.)transfer` and `(.)top-up`) so the current page stays visible behind the backdrop during soft navigation. The standalone `/transfer` and `/top-up` pages serve as fallback for direct URL access.
+
+### BottomNav (`src/components/BottomNav.tsx`)
+
+Floating pill navigation fixed to the bottom viewport. Present on all authenticated pages.
+
+| Tab | Icon | Route |
+|-----|------|-------|
+| Home | House | `/dashboard` |
+| Pay (center) | ScanLine (HTML/CSS button) | `/transfer` |
+| Activities | Clock | `/transactions` |
 
 ### PinVerificationModal (`src/components/PinVerificationModal.tsx`)
 
@@ -164,7 +196,7 @@ Reusable modal for PIN-gated actions (send money, delete account, etc.):
 
 ### BalanceCard (`src/components/BalanceCard.tsx`)
 
-Displays the user's balance in their selected currency plus an IDR equivalent (static rate: 1 USD = 15,800 IDR).
+Displays the user's balance in their selected currency plus an IDR equivalent (static rate: 1 USD = 15,800 IDR). Features a 3D tilt effect driven by pointer/touch position and device gyroscope (DeviceOrientation API). The logo and balance text use `translateZ()` to pop above the card surface. Uses `preserve-3d` on both the outer card and inner container.
 
 ---
 
@@ -210,7 +242,10 @@ npm run lint   # ESLint (next/core-web-vitals + TypeScript)
 
 1. Create `src/app/<route>/page.tsx`.
 2. Wrap with auth check if the page requires login (copy the pattern from `/dashboard/page.tsx`).
-3. Add a link in `Navbar.tsx` if needed.
+3. Add `<PageHeader title="Page Name" />` for the header and `<BottomNav />` for navigation.
+4. Use the standard container: `<div className="max-w-md mx-auto px-5 pb-[134px]">`.
+
+> **Note:** `Navbar.tsx` and `Footer.tsx` are legacy components used only on `/design-system` and `/documentation`. All authenticated pages use `BottomNav` + `PageHeader`.
 
 ### Adding a New shadcn/ui Component
 

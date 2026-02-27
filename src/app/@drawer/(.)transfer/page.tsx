@@ -6,7 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { DrawerPage } from "@/components/DrawerPage";
 import { SendForm } from "@/components/SendForm";
 
-export default function TransferPage() {
+export default function TransferDrawer() {
   const { currentUser } = useAuth();
   const router = useRouter();
 

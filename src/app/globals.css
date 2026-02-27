@@ -155,7 +155,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
   flex: 1 0 0;
   border-radius: 26px;
   border: 1px solid #81B700;
@@ -169,8 +168,8 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: 10px;
   flex: 1 0 0;
+  gap: 2px;
   align-self: stretch;
   border-radius: 21px;
   background: linear-gradient(0deg, #D9FF51 0%, #A6E500 100%);

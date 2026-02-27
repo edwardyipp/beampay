@@ -4,9 +4,9 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { DrawerPage } from "@/components/DrawerPage";
-import { SendForm } from "@/components/SendForm";
+import { TopUpForm } from "@/components/TopUpForm";
 
-export default function TransferPage() {
+export default function TopUpDrawer() {
   const { currentUser } = useAuth();
   const router = useRouter();
 
@@ -21,8 +21,8 @@ export default function TransferPage() {
   }
 
   return (
-    <DrawerPage title="Transfer">
-      <SendForm />
+    <DrawerPage title="Add Funds">
+      <TopUpForm />
     </DrawerPage>
   );
 }

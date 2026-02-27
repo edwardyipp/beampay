@@ -15,16 +15,17 @@ Floating pill fixed to the bottom viewport. Present on all authenticated pages.
 | Tab | Icon | Route | Active when |
 |-----|------|-------|-------------|
 | Home | House | `/dashboard` | `pathname === "/dashboard"` |
-| Pay (center) | Custom SVG | `/transfer` | Never highlighted (floating design is visually distinct) |
+| Pay (center) | ScanLine | `/transfer` | Never highlighted (floating design is visually distinct) |
 | Activities | Clock | `/transactions` | `pathname === "/transactions"` |
 
-### Dashboard-style Header
+### PageHeader (`src/components/PageHeader.tsx`)
 
-Avatar + display name + bell icon. Present on section-level pages: `/dashboard`, `/transactions`, `/settings`.
+Shared header component used on all authenticated pages. Two modes:
 
-- Avatar links to `/settings` (on dashboard and transactions; non-clickable on settings itself)
-- Bell icon is a no-op stub — notifications not yet implemented
-- Avatar shows: uploaded photo (base64), preset SVG (`/avatars/{id}.svg`), or initials fallback
+- **Avatar mode** (no `title` prop): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`.
+- **Title mode** (`title` prop): Renders a plain `<h1>` page title. Used on `/transactions` ("Activities"), `/settings` ("Settings"), `/transfer` ("Transfer"), `/top-up` ("Add Funds").
+
+Avatar shows: uploaded photo (base64), preset SVG (`/avatars/{id}.svg`), or initials fallback.
 
 ---
 
@@ -45,9 +46,7 @@ flowchart TD
     DASH -->|Add Funds button| TOPUP["/top-up"]
     DASH -->|View all link| TXN["/transactions"]
     DASH -->|Avatar / display name| SETTINGS["/settings"]
-    DASH -->|Bell icon| DASH_BELL["(no-op — mocked)"]
 
-    TXN -->|Avatar / display name| SETTINGS
     TXN -->|BottomNav: Home| DASH
     TXN -->|BottomNav: Pay| TRANSFER
 
@@ -138,30 +137,26 @@ flowchart LR
 
 ### `/dashboard`
 
-**Layout:** Dashboard header (avatar + name + bell) + BottomNav (Home active)
+**Layout:** PageHeader (avatar + name, links to `/settings`) + BottomNav (Home active)
 **Auth guard:** Yes → `/login`
-**Components:** `BalanceCard`, `TransactionHistory` (limit=5), `BottomNav`
+**Components:** `PageHeader`, `BalanceCard`, `TransactionHistory` (limit=5), `BottomNav`
 
 **UI elements:**
-- Header: avatar (44×44 px, links to `/settings`), display name, bell button (no-op)
-- `BalanceCard`: 3D tilt card (gyroscope + pointer/touch); primary currency balance + IDR equivalent; light mode uses gradient mesh, dark mode uses neon lime gradient
-- Two CTA buttons (2-col grid): Transfer (ArrowRightLeft icon) → `/transfer`; Add Funds (Plus icon) → `/top-up`
+- Header: avatar (44×44 px, links to `/settings`), display name
+- `BalanceCard`: 3D tilt card (gyroscope + pointer/touch, `translateZ` for logo/balance pop); primary currency balance + IDR equivalent; light mode uses gradient mesh, dark mode uses neon lime gradient
+- Two CTA buttons (2-col grid): Transfer (ArrowRightLeft icon) → `/transfer`; Add Funds (Plus icon) → `/top-up`. Hover: scale 1.01×, opacity 0.9, shadow. Active: scale 0.95, opacity 0.8
 - Activities section: "Activities" title + "View all" link → `/transactions`; last 5 transactions with coloured avatars, amounts in USD + IDR
 - Empty state: "No transactions yet"
-
-**Mocked:**
-- Bell icon has no `onClick` handler — notifications not implemented
 
 ---
 
 ### `/transfer`
 
-**Layout:** BottomNav only (no section header)
+**Layout:** DrawerPage (slide-up overlay, 90vh, slides down on close, no BottomNav). Uses intercepting route (`@drawer/(.)transfer`) — current page stays visible behind backdrop.
 **Auth guard:** Yes → `/login`
-**Components:** `SendForm`, `PinVerificationModal`
+**Components:** `DrawerPage`, `SendForm`, `PinVerificationModal`
 
 **UI elements:**
-- Card: "Transfer" title, "Transfer funds to another user" subtitle
 - Recipient email input
 - Amount input (numeric, min 0.01, max = current balance)
 - "Available balance: $X.XX" helper text
@@ -174,7 +169,7 @@ flowchart LR
   - "Cancel" button
 
 **Actions / outbound:**
-- BottomNav: Home → `/dashboard`, Pay → `/transfer`, Activities → `/transactions`
+- Close button / backdrop tap → `router.back()` (returns to referring page)
 
 **Validation / error states:**
 - Amount ≤ 0 → error toast
@@ -187,12 +182,11 @@ flowchart LR
 
 ### `/top-up`
 
-**Layout:** BottomNav only (no section header)
+**Layout:** DrawerPage (slide-up overlay, 90vh, slides down on close, no BottomNav). Uses intercepting route (`@drawer/(.)top-up`) — current page stays visible behind backdrop.
 **Auth guard:** Yes → `/login`
-**Components:** `TopUpForm`
+**Components:** `DrawerPage`, `TopUpForm`
 
 **UI elements — no saved cards:**
-- Card: "Top Up" title, "Add funds to your wallet using a credit card" subtitle
 - Amount input (numeric, min 0.01)
 - Card Number input (16 digits, numeric)
 - Expiry input (auto-formats to MM/YY)
@@ -205,7 +199,7 @@ flowchart LR
 - Saved card `Select` dropdown: `{label} • Expires {expiry}`
 
 **Actions / outbound:**
-- BottomNav: Home → `/dashboard`, Pay → `/transfer`, Activities → `/transactions`
+- Close button / backdrop tap → `router.back()` (returns to referring page)
 
 **Mocked:**
 - 1.5 s `setTimeout` simulates payment processing
@@ -216,29 +210,28 @@ flowchart LR
 
 ### `/transactions`
 
-**Layout:** Dashboard header (avatar + name + bell) + BottomNav (Activities active)
+**Layout:** PageHeader title="Activities" + BottomNav (Activities active)
 **Auth guard:** Yes → `/login`
-**Components:** `TransactionHistory` (no limit), `BottomNav`
+**Components:** `PageHeader`, `TransactionHistory` (no limit), `BottomNav`
 
 **UI elements:**
-- Header: avatar (links to `/settings`), display name, bell button (no-op)
-- Card: "All Transactions" title, "Complete history of your top-ups and transfers" subtitle
 - Full transaction list (newest first): coloured avatar circle, name/label, formatted date (`Mon DD, HH:MM`), amount with +/- prefix, IDR equivalent
 - Empty state: "No transactions yet" + helper text
 
 **Actions / outbound:**
-- Avatar / display name → `/settings`
 - BottomNav: Home → `/dashboard`, Pay → `/transfer`
 
 ---
 
 ### `/settings`
 
-**Layout:** Dashboard header (avatar + name, bell — avatar non-clickable) + BottomNav (no active tab)
+**Layout:** PageHeader title="Settings" + BottomNav (no active tab)
 **Auth guard:** Yes → `/login`
-**Components:** `EditProfileForm`, `ChangePasswordForm`, `ManageCardsSection`, `DeleteAccountSection`, `BottomNav`
+**Components:** `PageHeader`, `EditProfileForm`, `ChangePasswordForm`, `ManageCardsSection`, `DeleteAccountSection`, `BottomNav`
 
 **UI elements:**
+
+Sections are separated by `<Separator />` dividers (no Card wrappers).
 
 *Profile Information section:*
 - First Name + Last Name inputs (pre-filled)
@@ -253,12 +246,16 @@ flowchart LR
 - List of saved cards: icon, label, expiry, X (delete) button — delete is immediate, no confirmation
 - Empty state: "No saved cards yet…"
 
-*Danger Zone:*
+*Delete Account section:*
 - "Delete Account" button → `AlertDialog` confirmation → `PinVerificationModal`
 - On PIN success: removes user + wallet data from localStorage, redirects to `/login`
 
+*Logout:*
+- "Log Out" outline button → clears session → redirects to `/login`
+
 **Actions / outbound:**
 - BottomNav: Home → `/dashboard`, Pay → `/transfer`, Activities → `/transactions`
+- Log Out → clears `currentUserId` → `/login`
 
 ---
 

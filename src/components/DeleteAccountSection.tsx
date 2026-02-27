@@ -33,43 +33,41 @@ export function DeleteAccountSection() {
 
   return (
     <>
-      <div className="border-t border-border pt-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Once you delete your account, there is no going back. This will permanently delete
-              your account, wallet balance, transaction history, and saved cards.
-            </p>
-          </div>
-
-          <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">Delete Account</Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your
-                  account and remove all your data, including your
-                  wallet balance, transaction history, and saved payment cards.
-
-                  You will be asked to verify your PIN to confirm this action.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeleteClick}
-                  className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
-                >
-                  Continue to PIN Verification
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-red-600 dark:text-red-400">Danger Zone</h3>
+          <p className="text-sm text-muted-foreground mt-1">
+            Once you delete your account, there is no going back. This will permanently delete
+            your account, wallet balance, transaction history, and saved cards.
+          </p>
         </div>
+
+        <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive">Delete Account</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete your
+                account and remove all your data, including your
+                wallet balance, transaction history, and saved payment cards.
+
+                You will be asked to verify your PIN to confirm this action.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteClick}
+                className="bg-red-600 hover:bg-red-700 dark:bg-red-700 dark:hover:bg-red-800"
+              >
+                Continue to PIN Verification
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
 
       <PinVerificationModal

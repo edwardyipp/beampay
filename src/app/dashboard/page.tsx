@@ -7,8 +7,8 @@ import { useAuth } from "@/context/AuthContext";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { BottomNav } from "@/components/BottomNav";
-import { getInitials } from "@/lib/user-utils";
-import { ArrowRightLeft, Plus, Bell } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { ArrowRightLeft, Plus } from "lucide-react";
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
@@ -24,16 +24,6 @@ export default function DashboardPage() {
     return null;
   }
 
-  const displayName =
-    currentUser.firstName && currentUser.lastName
-      ? `${currentUser.firstName} ${currentUser.lastName}`
-      : currentUser.email.split("@")[0];
-
-  const initials =
-    currentUser.firstName && currentUser.lastName
-      ? getInitials(currentUser.firstName, currentUser.lastName)
-      : currentUser.email.charAt(0).toUpperCase();
-
   return (
     /* Page background: very subtle lime tint at top fading to white (Figma css-4szs8t) */
     <div
@@ -46,50 +36,7 @@ export default function DashboardPage() {
       {/* max-w-md container, px-5 = 20px (Figma: padding 0 20px), pb-[134px] for floating nav */}
       <div className="max-w-md mx-auto px-5 pb-[134px]">
 
-        {/* Header — height 76px, gap-3 = 12px, py-4 */}
-        <div className="flex items-center justify-between py-4 h-[76px]">
-          <Link href="/settings" className="flex items-center gap-3">
-            {/* Avatar — 44×44px, border-radius 40px */}
-            {currentUser.profilePicture ? (
-              currentUser.profilePicture.startsWith("data:") ? (
-                <img
-                  src={currentUser.profilePicture}
-                  alt="Profile"
-                  className="w-11 h-11 rounded-[40px] object-cover"
-                  style={{ boxShadow: "0px 8px 40px 0px rgba(0,0,0,0.12)" }}
-                />
-              ) : (
-                <img
-                  src={`/avatars/${currentUser.profilePicture}.svg`}
-                  alt="Avatar"
-                  className="w-11 h-11 rounded-[40px]"
-                  style={{ boxShadow: "0px 8px 40px 0px rgba(0,0,0,0.12)" }}
-                />
-              )
-            ) : (
-              <div
-                className="w-11 h-11 rounded-[40px] bg-primary text-primary-foreground flex items-center justify-center text-base font-medium"
-                style={{ boxShadow: "0px 8px 40px 0px rgba(0,0,0,0.12)" }}
-              >
-                {initials}
-              </div>
-            )}
-            {/* Name — 16px medium (Figma css-b2oziz: font-size 16px, line-height 20px) */}
-            <span className="font-medium text-base text-foreground leading-5">{displayName}</span>
-          </Link>
-
-          {/* Bell button — 44×44px, #F9FAFB bg, white border, large soft shadow (Figma SVG filter) */}
-          <button
-            className="w-11 h-11 rounded-full flex items-center justify-center text-[#030712] dark:text-foreground hover:opacity-80 transition-opacity"
-            style={{
-              backgroundColor: "#F9FAFB",
-              border: "1px solid rgba(255,255,255,0.8)",
-              boxShadow: "0px 8px 40px 0px rgba(0,0,0,0.12)",
-            }}
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-        </div>
+        <PageHeader />
 
         {/* Balance Card */}
         <div className="mt-2">
@@ -100,14 +47,14 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 mt-4">
           <Link
             href="/transfer"
-            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg hover:opacity-90 transition-opacity"
+            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
             <ArrowRightLeft className="w-5 h-5" />
             Transfer
           </Link>
           <Link
             href="/top-up"
-            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg hover:opacity-90 transition-opacity"
+            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
             <Plus className="w-5 h-5" />
             Add Funds
