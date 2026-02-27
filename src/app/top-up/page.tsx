@@ -3,8 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
+import { BottomNav } from "@/components/BottomNav";
 import { TopUpForm } from "@/components/TopUpForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -24,8 +23,7 @@ export default function TopUpPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-8 pb-[134px]">
         <Card>
           <CardHeader>
             <CardTitle>Top Up</CardTitle>
@@ -38,7 +36,7 @@ export default function TopUpPage() {
           </CardContent>
         </Card>
       </main>
-      <Footer />
+      <BottomNav />
     </div>
   );
 }
