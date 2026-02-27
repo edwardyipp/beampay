@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Clock } from "lucide-react";
+import { Home, Clock, ScanLine } from "lucide-react";
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -54,7 +54,14 @@ export function BottomNav() {
             transform: "translateX(-50%) translateY(-50%)",
           }}
         >
-          <img src="/pay-button.svg" alt="Pay" className="w-[120px] h-auto" />
+          <div className="pay-btn-wrapper">
+            <div className="pay-btn-outer">
+              <div className="pay-btn-inner">
+                <ScanLine className="w-[32px] h-[32px]" />
+                <span className="text-[12px] font-medium">Pay</span>
+              </div>
+            </div>
+          </div>
         </Link>
       </div>
     </div>
