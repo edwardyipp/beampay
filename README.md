@@ -8,11 +8,12 @@ A minimal, user-friendly digital wallet built with Next.js. Users can sign up, t
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js 14 (App Router) + TypeScript |
-| Styling | Tailwind CSS |
-| UI Components | shadcn/ui |
+| Framework | Next.js 16 (App Router) + TypeScript |
+| Styling | Tailwind CSS v4 + CSS variables |
+| UI Components | shadcn/ui (Radix UI) |
+| Theming | next-themes (light/dark/system) |
 | State & Persistence | React Context + localStorage |
-| Notifications | shadcn/ui Sonner (toast) |
+| Notifications | Sonner (toast) |
 | Payment / Auth | Fully mocked (no backend) |
 
 ---
@@ -55,30 +56,47 @@ http://localhost:3000
 ```
 src/
 ├── app/
-│   ├── layout.tsx              # Root layout — Tailwind, font, Toaster
-│   ├── page.tsx                # Entry point — redirects based on auth state
-│   ├── login/
-│   │   └── page.tsx            # Sign In / Sign Up page
-│   ├── dashboard/
-│   │   └── page.tsx            # Main wallet dashboard
-│   └── settings/
-│       └── page.tsx            # Account settings page
+│   ├── layout.tsx              # Root layout — providers, fonts, metadata
+│   ├── page.tsx                # Auth gate — redirects based on auth state
+│   ├── login/page.tsx          # Sign In / Sign Up page
+│   ├── dashboard/page.tsx      # Main wallet dashboard
+│   ├── transfer/page.tsx       # Send money (DrawerPage overlay)
+│   ├── top-up/page.tsx         # Add funds (DrawerPage overlay)
+│   ├── transactions/page.tsx   # Full transaction history
+│   ├── settings/
+│   │   ├── page.tsx            # Settings hub (menu)
+│   │   ├── profile/page.tsx    # Edit name and email
+│   │   ├── appearance/page.tsx # Theme selection (Light/Dark/System)
+│   │   ├── security/page.tsx   # Change password
+│   │   ├── payment/page.tsx    # Manage saved cards
+│   │   └── close-account/page.tsx # Delete account
+│   └── security-info/page.tsx  # Post-login security reminders
 ├── components/
-│   ├── Navbar.tsx              # Top nav — user info + logout + settings link
-│   ├── BalanceCard.tsx         # Current balance display
-│   ├── TopUpForm.tsx           # Credit card form + amount + save card option
-│   ├── SendForm.tsx            # Send money — recipient email + amount
-│   ├── SavedCards.tsx          # List of saved cards with delete option
-│   ├── TransactionHistory.tsx  # Full list of top-ups and sends
+│   ├── ui/                     # shadcn/ui primitives (generated, do not edit)
+│   ├── PageHeader.tsx          # Shared header (avatar/title/back modes)
+│   ├── BottomNav.tsx           # Floating pill navigation
+│   ├── BalanceCard.tsx         # 3D tilt balance card
+│   ├── DrawerPage.tsx          # Slide-up drawer wrapper
+│   ├── SignupFlow.tsx          # 5-step registration wizard
+│   ├── SettingsPageWrapper.tsx # Shared wrapper for settings sub-pages
+│   ├── TopUpForm.tsx           # Credit card form + amount
+│   ├── SendForm.tsx            # Send money — recipient + amount
+│   ├── PinVerificationModal.tsx # PIN entry modal (4 digits, 3 attempts)
+│   ├── TransactionHistory.tsx  # Transaction list
 │   ├── EditProfileForm.tsx     # Edit name and email
 │   ├── ChangePasswordForm.tsx  # Change password
 │   ├── ManageCardsSection.tsx  # View/delete saved cards
 │   └── DeleteAccountSection.tsx # Delete account with confirmation
 ├── context/
-│   ├── AuthContext.tsx         # Auth state + updateProfile, changePassword, deleteAccount
-│   └── WalletContext.tsx       # Wallet state + deleteSavedCard
+│   ├── AuthContext.tsx         # Auth state + CRUD helpers
+│   ├── WalletContext.tsx       # Wallet state + balance, transactions, cards
+│   └── ThemeContext.tsx        # Dark/light mode via next-themes
+├── lib/
+│   ├── validators.ts           # PIN, email, password validation
+│   ├── currency-utils.ts       # Currency formatting + USD→IDR conversion
+│   └── utils.ts                # cn() Tailwind class merge helper
 └── types/
-    └── index.ts                # Shared TypeScript types
+    └── index.ts                # Shared TypeScript interfaces
 ```
 
 ---
@@ -88,9 +106,18 @@ src/
 | Route | Description |
 |-------|-------------|
 | `/` | Auth gate — redirects to `/login` or `/dashboard` |
-| `/login` | Sign in or sign up |
-| `/dashboard` | Main wallet view |
-| `/settings` | Account settings — edit profile, change password, manage cards, delete account |
+| `/login` | Sign in or sign up (5-step signup wizard) |
+| `/dashboard` | Main wallet view with balance card, CTAs, activities |
+| `/transfer` | Send money (slide-up drawer overlay) |
+| `/top-up` | Add funds via card (slide-up drawer overlay) |
+| `/transactions` | Full transaction history |
+| `/settings` | Settings hub — links to sub-pages below |
+| `/settings/profile` | Edit name and email |
+| `/settings/appearance` | Theme selection (Light / Dark / System) |
+| `/settings/security` | Change password |
+| `/settings/payment` | Manage saved payment cards |
+| `/settings/close-account` | Delete account |
+| `/security-info` | Post-login security reminders |
 
 ---
 
@@ -134,11 +161,18 @@ src/
 - Error toasts (red) for validation failures and insufficient balance.
 - Toasts auto-dismiss after ~3 seconds.
 
+### Dark Mode
+- Toggle between **light** and **dark** mode via the moon/sun button on the dashboard header.
+- Full appearance settings at Settings > Appearance with three options: Light, Dark, System.
+- Dark theme uses a **neon lime accent** palette on deep black backgrounds.
+- Theme preference persists across sessions (stored by next-themes in localStorage).
+
 ### Account Settings
-- **Edit Profile** — update name and email. Changes persist to localStorage and update immediately in the navbar.
-- **Change Password** — requires current password verification. New password must be at least 6 characters and match confirmation.
-- **Manage Cards** — view all saved cards and delete any you no longer need. Changes sync with the top-up form.
-- **Delete Account** — permanently delete your account and all associated data (balance, transactions, saved cards). Shows a confirmation dialog before proceeding. Irreversible.
+- Settings is a **hub page** linking to dedicated sub-pages, each with a back button.
+- **Profile** — update name and email. PIN verification required for email changes.
+- **Security** — change password. PIN verification always required.
+- **Payment** — view and delete saved payment cards.
+- **Close Account** — permanently delete your account and all associated data. Requires confirmation dialog + PIN verification. Irreversible.
 
 ---
 
@@ -150,7 +184,13 @@ All data is stored in `localStorage`, keyed per user.
 interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  pin: string;
+  emailVerified: boolean;
+  currency: string;
+  profilePicture?: string;
 }
 
 interface SavedCard {
@@ -182,7 +222,7 @@ interface WalletData {
 
 The UI is inspired by [localpay.asia](https://localpay.asia/) — a clean, trust-forward fintech aesthetic.
 
-- **Colors** — white/light-gray base with blue/teal as the primary accent
+- **Colors** — white/light-gray base with lime green accent in light mode; deep black with neon lime accent in dark mode
 - **Layout** — generous whitespace, each section in its own rounded card with a subtle shadow
 - **Balance** — the focal point, displayed large and bold at the top
 - **Typography** — clean sans-serif, hierarchy driven by size and weight

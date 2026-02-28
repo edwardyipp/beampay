@@ -36,7 +36,13 @@ src/
 │   ├── top-up/page.tsx
 │   ├── transfer/page.tsx
 │   ├── transactions/page.tsx
-│   ├── settings/page.tsx
+│   ├── settings/
+│   │   ├── page.tsx            # Settings hub (menu linking to sub-pages)
+│   │   ├── profile/page.tsx    # Edit name and email
+│   │   ├── appearance/page.tsx # Theme selection (Light/Dark/System)
+│   │   ├── security/page.tsx   # Change password
+│   │   ├── payment/page.tsx    # Manage saved cards
+│   │   └── close-account/page.tsx # Delete account
 │   ├── security-info/page.tsx
 │   ├── design-system/page.tsx
 │   └── documentation/page.tsx
@@ -157,10 +163,13 @@ Five-step registration wizard rendered on `/login`:
 
 ### PageHeader (`src/components/PageHeader.tsx`)
 
-Shared header used on all authenticated pages. Two modes:
+Shared header used on all authenticated pages. Three modes:
 
-- **Avatar mode** (default): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`.
-- **Title mode** (`title` prop): Shows a plain page title (e.g., "Settings", "Activities"). Used on `/transactions` and `/settings`.
+- **Avatar mode** (default): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`. Optionally shows a theme toggle button on the right when `showThemeToggle` is passed.
+- **Title + back mode** (`title` + `backHref` props): Shows a back arrow button (rounded circle) + page title. Used on settings sub-pages.
+- **Title mode** (`title` prop only): Shows a plain page title (e.g., "Settings", "Activities"). Used on `/transactions` and `/settings`.
+
+Props: `linkToSettings?: boolean`, `title?: string`, `backHref?: string`, `showThemeToggle?: boolean`.
 
 ### DrawerPage (`src/components/DrawerPage.tsx`)
 
@@ -178,7 +187,7 @@ These routes use **Next.js Intercepting Routes** (`@drawer` parallel slot with `
 
 ### BottomNav (`src/components/BottomNav.tsx`)
 
-Floating pill navigation fixed to the bottom viewport. Present on all authenticated pages.
+Floating pill navigation fixed to the bottom viewport. Present on `/dashboard`, `/transactions`, and `/settings` hub. **Not present** on settings sub-pages or drawer overlays.
 
 | Tab | Icon | Route |
 |-----|------|-------|
@@ -194,9 +203,13 @@ Reusable modal for PIN-gated actions (send money, delete account, etc.):
 - 3 attempts allowed before a **5-minute lockout**
 - Calls `onSuccess` callback when PIN matches `user.pin`
 
+### SettingsPageWrapper (`src/components/SettingsPageWrapper.tsx`)
+
+Reusable wrapper for settings sub-pages. Provides auth check + redirect, `PageHeader` with title and `backHref`, slide-in animation (`animate-in slide-in-from-right duration-200`), and consistent layout (`max-w-md mx-auto px-5 pb-10`). No BottomNav.
+
 ### BalanceCard (`src/components/BalanceCard.tsx`)
 
-Displays the user's balance in their selected currency plus an IDR equivalent (static rate: 1 USD = 15,800 IDR). Features a 3D tilt effect driven by pointer/touch position and device gyroscope (DeviceOrientation API). The logo and balance text use `translateZ()` to pop above the card surface. Uses `preserve-3d` on both the outer card and inner container.
+Displays the user's balance in their selected currency plus an IDR equivalent (static rate: 1 USD = 15,800 IDR). Features a 3D tilt effect driven by pointer/touch position and device gyroscope (DeviceOrientation API). The logo and balance text use `translateZ()` to pop above the card surface. Uses `preserve-3d` on both the outer card and inner container. **Always uses light mode styling** (lime gradient, dark text) regardless of the active theme.
 
 ---
 
@@ -244,6 +257,12 @@ npm run lint   # ESLint (next/core-web-vitals + TypeScript)
 2. Wrap with auth check if the page requires login (copy the pattern from `/dashboard/page.tsx`).
 3. Add `<PageHeader title="Page Name" />` for the header and `<BottomNav />` for navigation.
 4. Use the standard container: `<div className="max-w-md mx-auto px-5 pb-[134px]">`.
+
+### Adding a New Settings Sub-Page
+
+1. Create `src/app/settings/<name>/page.tsx`.
+2. Wrap content with `<SettingsPageWrapper title="Page Title">` — this handles auth, header with back button, layout, and animation.
+3. Add the menu item to the `menuItems` array in `src/app/settings/page.tsx`.
 
 > **Note:** `Navbar.tsx` and `Footer.tsx` are legacy components used only on `/design-system` and `/documentation`. All authenticated pages use `BottomNav` + `PageHeader`.
 
@@ -335,10 +354,15 @@ className="bg-gradient-to-r from-primary to-blue-600 dark:to-primary-light bg-cl
 ```
 Light mode: dark gray → blue. Dark mode: neon lime → lighter lime.
 
-The BalanceCard uses:
-```tsx
-className="bg-gradient-to-br from-blue-600 to-blue-800 dark:from-primary-dark dark:to-[oklch(0.3_0.18_122.4)] dark:text-primary-foreground"
-```
+The BalanceCard always uses its light mode lime gradient (inline CSS) regardless of theme — it does not change in dark mode.
+
+### Theme switching
+
+Users can toggle between light and dark mode via:
+- **Dashboard**: Circle button (moon/sun icon) in the top-right of the `PageHeader` (`showThemeToggle` prop).
+- **Settings > Appearance**: Three-option selector (Light / Dark / System) at `/settings/appearance`.
+
+Both use `useTheme()` from next-themes. The dashboard toggle uses `resolvedTheme` to also conditionally apply the lime background gradient only in light mode.
 
 ---
 

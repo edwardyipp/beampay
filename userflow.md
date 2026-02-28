@@ -20,10 +20,11 @@ Floating pill fixed to the bottom viewport. Present on all authenticated pages.
 
 ### PageHeader (`src/components/PageHeader.tsx`)
 
-Shared header component used on all authenticated pages. Two modes:
+Shared header component used on all authenticated pages. Three modes:
 
-- **Avatar mode** (no `title` prop): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`.
-- **Title mode** (`title` prop): Renders a plain `<h1>` page title. Used on `/transactions` ("Activities"), `/settings` ("Settings"), `/transfer` ("Transfer"), `/top-up` ("Add Funds").
+- **Avatar mode** (no `title` prop): Shows user avatar + display name, links to `/settings`. Used on `/dashboard`. When `showThemeToggle` is passed, renders a moon/sun circle button on the right to toggle light/dark mode.
+- **Title + back mode** (`title` + `backHref` props): Shows a back arrow in a rounded circle + page title. Used on settings sub-pages (e.g., `<PageHeader title="Profile" backHref="/settings" />`).
+- **Title mode** (`title` prop only): Renders a plain `<h1>` page title. Used on `/transactions` ("Activities"), `/settings` ("Settings").
 
 Avatar shows: uploaded photo (base64), preset SVG (`/avatars/{id}.svg`), or initials fallback.
 
@@ -50,10 +51,19 @@ flowchart TD
     TXN -->|BottomNav: Home| DASH
     TXN -->|BottomNav: Pay| TRANSFER
 
-    SETTINGS -->|BottomNav: Home| DASH
-    SETTINGS -->|BottomNav: Activities| TXN
-    SETTINGS -->|BottomNav: Pay| TRANSFER
-    SETTINGS -->|Delete Account + PIN verified| LOGIN
+    SETTINGS -->|Profile| PROFILE["/settings/profile"]
+    SETTINGS -->|Appearance| APPEARANCE["/settings/appearance"]
+    SETTINGS -->|Security| SECURITY["/settings/security"]
+    SETTINGS -->|Payment| PAYMENT["/settings/payment"]
+    SETTINGS -->|Close Account| CLOSE["/settings/close-account"]
+    SETTINGS -->|Log Out| LOGIN
+
+    PROFILE -->|Back| SETTINGS
+    APPEARANCE -->|Back| SETTINGS
+    SECURITY -->|Back| SETTINGS
+    PAYMENT -->|Back| SETTINGS
+    CLOSE -->|Delete Account + PIN verified| LOGIN
+    CLOSE -->|Back| SETTINGS
 
     TRANSFER -->|BottomNav: Home| DASH
     TRANSFER -->|BottomNav: Activities| TXN
@@ -137,13 +147,13 @@ flowchart LR
 
 ### `/dashboard`
 
-**Layout:** PageHeader (avatar + name, links to `/settings`) + BottomNav (Home active)
+**Layout:** PageHeader (avatar + name, links to `/settings`, theme toggle button) + BottomNav (Home active)
 **Auth guard:** Yes → `/login`
-**Components:** `PageHeader`, `BalanceCard`, `TransactionHistory` (limit=5), `BottomNav`
+**Components:** `PageHeader` (with `showThemeToggle`), `BalanceCard`, `TransactionHistory` (limit=5), `BottomNav`
 
 **UI elements:**
-- Header: avatar (44×44 px, links to `/settings`), display name
-- `BalanceCard`: 3D tilt card (gyroscope + pointer/touch, `translateZ` for logo/balance pop); primary currency balance + IDR equivalent; light mode uses gradient mesh, dark mode uses neon lime gradient
+- Header: avatar (44×44 px, links to `/settings`), display name, theme toggle button (moon/sun, 44×44 px circle, top-right)
+- `BalanceCard`: 3D tilt card (gyroscope + pointer/touch, `translateZ` for logo/balance pop); primary currency balance + IDR equivalent; always uses light mode lime gradient styling regardless of theme
 - Two CTA buttons (2-col grid): Transfer (ArrowRightLeft icon) → `/transfer`; Add Funds (Plus icon) → `/top-up`. Hover: scale 1.01×, opacity 0.9, shadow. Active: scale 0.95, opacity 0.8
 - Activities section: "Activities" title + "View all" link → `/transactions`; last 5 transactions with coloured avatars, amounts in USD + IDR
 - Empty state: "No transactions yet"
@@ -225,37 +235,88 @@ flowchart LR
 
 ### `/settings`
 
-**Layout:** PageHeader title="Settings" + BottomNav (no active tab)
+**Layout:** PageHeader title="Settings" + backHref="/dashboard" (no BottomNav)
 **Auth guard:** Yes → `/login`
-**Components:** `PageHeader`, `EditProfileForm`, `ChangePasswordForm`, `ManageCardsSection`, `DeleteAccountSection`, `BottomNav`
+**Components:** `PageHeader`, menu item links, Logout button
 
 **UI elements:**
 
-Sections are separated by `<Separator />` dividers (no Card wrappers).
+Navigation hub with five menu items, each linking to a dedicated sub-page:
 
-*Profile Information section:*
+| Menu Item | Icon | Color | Route |
+|-----------|------|-------|-------|
+| Profile | User | Blue | `/settings/profile` |
+| Appearance | Palette | Purple | `/settings/appearance` |
+| Security | Shield | Amber | `/settings/security` |
+| Payment | CreditCard | Green | `/settings/payment` |
+| Close Account | Trash2 | Red | `/settings/close-account` |
+
+Each item shows: colored icon in rounded background, label + description, chevron arrow.
+
+- "Log Out" outline button at bottom → clears session → redirects to `/login`
+
+---
+
+### `/settings/profile`
+
+**Layout:** SettingsPageWrapper (PageHeader with back arrow → `/settings`, no BottomNav)
+**Auth guard:** Yes → `/login`
+**Components:** `SettingsPageWrapper`, `EditProfileForm`
+
+**UI elements:**
 - First Name + Last Name inputs (pre-filled)
 - Email input (pre-filled); changing email shows amber PIN-required warning
 - "Save Changes" button; PIN modal only appears if email was changed
 
-*Change Password section:*
+---
+
+### `/settings/appearance`
+
+**Layout:** SettingsPageWrapper (PageHeader with back arrow → `/settings`, no BottomNav)
+**Auth guard:** Yes → `/login`
+**Components:** `SettingsPageWrapper`, theme selector
+
+**UI elements:**
+- Three selectable cards in a row: Light (Sun icon), Dark (Moon icon), System (Monitor icon)
+- Active option shows `border-primary bg-primary/10` highlight
+- Uses `useTheme()` from next-themes to read/set theme
+- Hydration-safe with `mounted` state
+
+---
+
+### `/settings/security`
+
+**Layout:** SettingsPageWrapper (PageHeader with back arrow → `/settings`, no BottomNav)
+**Auth guard:** Yes → `/login`
+**Components:** `SettingsPageWrapper`, `ChangePasswordForm`
+
+**UI elements:**
 - Current Password, New Password (min 6 chars), Confirm New Password inputs
 - "Change Password" button → always requires PIN
 
-*Saved Payment Cards section:*
+---
+
+### `/settings/payment`
+
+**Layout:** SettingsPageWrapper (PageHeader with back arrow → `/settings`, no BottomNav)
+**Auth guard:** Yes → `/login`
+**Components:** `SettingsPageWrapper`, `ManageCardsSection`
+
+**UI elements:**
 - List of saved cards: icon, label, expiry, X (delete) button — delete is immediate, no confirmation
 - Empty state: "No saved cards yet…"
 
-*Delete Account section:*
+---
+
+### `/settings/close-account`
+
+**Layout:** SettingsPageWrapper (PageHeader with back arrow → `/settings`, no BottomNav)
+**Auth guard:** Yes → `/login`
+**Components:** `SettingsPageWrapper`, `DeleteAccountSection`
+
+**UI elements:**
 - "Delete Account" button → `AlertDialog` confirmation → `PinVerificationModal`
 - On PIN success: removes user + wallet data from localStorage, redirects to `/login`
-
-*Logout:*
-- "Log Out" outline button → clears session → redirects to `/login`
-
-**Actions / outbound:**
-- BottomNav: Home → `/dashboard`, Pay → `/transfer`, Activities → `/transactions`
-- Log Out → clears `currentUserId` → `/login`
 
 ---
 
@@ -334,8 +395,8 @@ Sections are separated by `<Separator />` dividers (no Card wrappers).
 
 ### 5. Delete Account
 
-1. `/settings` → scroll to Danger Zone → "Delete Account"
-2. `AlertDialog` confirmation → "Continue to PIN Verification"
+1. `/settings` → tap "Close Account" → `/settings/close-account`
+2. "Delete Account" button → `AlertDialog` confirmation → "Continue to PIN Verification"
 3. `PinVerificationModal` (title: "Confirm Account Deletion")
 4. Correct PIN → `deleteAccount()`: removes user from `users[]`, removes `wallet_${id}`, removes `currentUserId` and `security-info-dismissed-${id}` → redirect to `/login`
 
@@ -346,9 +407,9 @@ Sections are separated by `<Separator />` dividers (no Card wrappers).
 | Trigger | Page | Modal Title | Modal Description |
 |---------|------|-------------|-------------------|
 | Send money | `/transfer` | "Confirm Transaction" | "Enter your PIN to send $X.XX to {email}" |
-| Change email | `/settings` | "Verify your identity" | "Enter your PIN to change your email address" |
-| Change password | `/settings` | "Verify your identity" | "Enter your PIN to change your password" |
-| Delete account | `/settings` | "Confirm Account Deletion" | "Enter your PIN to permanently delete your account" |
+| Change email | `/settings/profile` | "Verify your identity" | "Enter your PIN to change your email address" |
+| Change password | `/settings/security` | "Verify your identity" | "Enter your PIN to change your password" |
+| Delete account | `/settings/close-account` | "Confirm Account Deletion" | "Enter your PIN to permanently delete your account" |
 
 PIN rules: 4 digits; sequential patterns (1234, 2345 … 9012) and repeated digits (0000 … 9999) are rejected by `validatePin()`. 3 wrong attempts → 5-minute in-memory lockout with live countdown. Lockout resets if the modal is closed and reopened.
 
