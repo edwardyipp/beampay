@@ -1,35 +1,60 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
+import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { BottomNav } from "@/components/BottomNav";
 import { PageHeader } from "@/components/PageHeader";
-import { EditProfileForm } from "@/components/EditProfileForm";
-import { ChangePasswordForm } from "@/components/ChangePasswordForm";
-import { ManageCardsSection } from "@/components/ManageCardsSection";
-import { DeleteAccountSection } from "@/components/DeleteAccountSection";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { LogOut, Sun, Moon, Monitor } from "lucide-react";
+import { User, Shield, CreditCard, Trash2, LogOut, ChevronRight, Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const themeOptions = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const menuItems = [
+  {
+    href: "/settings/profile",
+    icon: User,
+    iconBg: "bg-blue-100 dark:bg-blue-900/30",
+    iconColor: "text-blue-600 dark:text-blue-400",
+    label: "Profile",
+    description: "Name and email",
+  },
+  {
+    href: "/settings/appearance",
+    icon: Palette,
+    iconBg: "bg-purple-100 dark:bg-purple-900/30",
+    iconColor: "text-purple-600 dark:text-purple-400",
+    label: "Appearance",
+    description: "Theme and display",
+  },
+  {
+    href: "/settings/security",
+    icon: Shield,
+    iconBg: "bg-amber-100 dark:bg-amber-900/30",
+    iconColor: "text-amber-600 dark:text-amber-400",
+    label: "Security",
+    description: "Password and PIN",
+  },
+  {
+    href: "/settings/payment",
+    icon: CreditCard,
+    iconBg: "bg-green-100 dark:bg-green-900/30",
+    iconColor: "text-green-600 dark:text-green-400",
+    label: "Payment",
+    description: "Saved cards and methods",
+  },
+  {
+    href: "/settings/close-account",
+    icon: Trash2,
+    iconBg: "bg-red-100 dark:bg-red-900/30",
+    iconColor: "text-red-600 dark:text-red-400",
+    label: "Close Account",
+    description: "Permanently delete your account",
+  },
 ] as const;
 
 export default function SettingsPage() {
   const { currentUser, logout } = useAuth();
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -43,83 +68,40 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-md mx-auto px-5 pb-[134px]">
+      <div className="max-w-md mx-auto px-5 pb-10">
+        <PageHeader title="Settings" backHref="/dashboard" />
 
-        <PageHeader title="Settings" />
-
-        <div className="space-y-6">
-          {/* Profile Information */}
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Profile Information</h2>
-            <p className="text-sm text-muted-foreground mt-1">Update your name and email address</p>
-            <div className="mt-4">
-              <EditProfileForm />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Appearance */}
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Appearance</h2>
-            <p className="text-sm text-muted-foreground mt-1">Choose your preferred color theme</p>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {themeOptions.map(({ value, label, icon: Icon }) => (
-                <button
-                  key={value}
-                  onClick={() => setTheme(value)}
-                  className={cn(
-                    "flex flex-col items-center gap-2 rounded-xl py-3 px-2 border transition-colors",
-                    mounted && theme === value
-                      ? "border-primary bg-primary/10 text-foreground"
-                      : "border-border bg-card text-muted-foreground hover:bg-muted"
-                  )}
+        <div className="animate-in slide-in-from-right duration-200">
+          <div className="space-y-2">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="flex items-center gap-3 py-3 rounded-xl hover:bg-muted transition-colors"
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="text-sm font-medium">{label}</span>
-                </button>
-              ))}
-            </div>
+                  <div className={cn("w-11 h-11 rounded-full flex items-center justify-center", item.iconBg)}>
+                    <Icon className={cn("w-5 h-5", item.iconColor)} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-medium text-foreground">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.description}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground flex-shrink-0" />
+                </Link>
+              );
+            })}
           </div>
 
-          <Separator />
-
-          {/* Change Password */}
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Change Password</h2>
-            <p className="text-sm text-muted-foreground mt-1">Update your password to keep your account secure</p>
-            <div className="mt-4">
-              <ChangePasswordForm />
-            </div>
+          <div className="mt-8">
+            <Button variant="outline" onClick={logout} className="w-full">
+              <LogOut className="w-4 h-4" />
+              Log Out
+            </Button>
           </div>
-
-          <Separator />
-
-          {/* Saved Payment Cards */}
-          <div>
-            <h2 className="text-base font-semibold text-foreground">Saved Payment Cards</h2>
-            <p className="text-sm text-muted-foreground mt-1">View and manage your saved payment methods</p>
-            <div className="mt-4">
-              <ManageCardsSection />
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Delete Account */}
-          <DeleteAccountSection />
-
-          <Separator />
-
-          {/* Logout */}
-          <Button variant="outline" onClick={logout} className="w-full">
-            <LogOut className="w-4 h-4" />
-            Log Out
-          </Button>
         </div>
       </div>
-
-      <BottomNav />
     </div>
   );
 }
