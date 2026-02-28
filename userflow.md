@@ -10,7 +10,7 @@ Two persistent navigation elements appear across authenticated pages:
 
 ### BottomNav (`src/components/BottomNav.tsx`)
 
-Floating pill fixed to the bottom viewport. Present on all authenticated pages.
+Floating pill fixed to the bottom viewport. Present on `/dashboard` and `/transactions`. **Not present** on settings pages (hub or sub-pages) or drawer overlays.
 
 | Tab | Icon | Route | Active when |
 |-----|------|-------|-------------|
@@ -277,8 +277,12 @@ Each item shows: colored icon in rounded background, label + description, chevro
 **Components:** `SettingsPageWrapper`, theme selector
 
 **UI elements:**
-- Three selectable cards in a row: Light (Sun icon), Dark (Moon icon), System (Monitor icon)
-- Active option shows `border-primary bg-primary/10` highlight
+- List of three theme options, each row: icon (w-11 h-11 circle) + label + description + radio indicator
+  - Light (Sun icon): "Classic light theme"
+  - Dark (Moon icon): "Easy on the eyes"
+  - System (Monitor icon): "Match your device"
+- Selected option: `bg-primary/15` icon background, `text-primary` icon color, filled radio dot
+- Unselected: `bg-muted` icon background, `text-muted-foreground` icon, empty radio circle
 - Uses `useTheme()` from next-themes to read/set theme
 - Hydration-safe with `mounted` state
 

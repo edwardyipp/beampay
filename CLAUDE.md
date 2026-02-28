@@ -187,7 +187,7 @@ These routes use **Next.js Intercepting Routes** (`@drawer` parallel slot with `
 
 ### BottomNav (`src/components/BottomNav.tsx`)
 
-Floating pill navigation fixed to the bottom viewport. Present on `/dashboard`, `/transactions`, and `/settings` hub. **Not present** on settings sub-pages or drawer overlays.
+Floating pill navigation fixed to the bottom viewport. Present on `/dashboard` and `/transactions`. **Not present** on settings pages (hub or sub-pages) or drawer overlays.
 
 | Tab | Icon | Route |
 |-----|------|-------|
@@ -360,7 +360,7 @@ The BalanceCard always uses its light mode lime gradient (inline CSS) regardless
 
 Users can toggle between light and dark mode via:
 - **Dashboard**: Circle button (moon/sun icon) in the top-right of the `PageHeader` (`showThemeToggle` prop).
-- **Settings > Appearance**: Three-option selector (Light / Dark / System) at `/settings/appearance`.
+- **Settings > Appearance**: List-style selector with radio indicators (Light / Dark / System) at `/settings/appearance`.
 
 Both use `useTheme()` from next-themes. The dashboard toggle uses `resolvedTheme` to also conditionally apply the lime background gradient only in light mode.
 
