@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useTheme } from "next-themes";
 import { useAuth } from "@/context/AuthContext";
 import { BalanceCard } from "@/components/BalanceCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
@@ -13,6 +14,12 @@ import { ArrowRightLeft, Plus } from "lucide-react";
 export default function DashboardPage() {
   const { currentUser } = useAuth();
   const router = useRouter();
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!currentUser) {
@@ -24,19 +31,21 @@ export default function DashboardPage() {
     return null;
   }
 
+  const isLight = mounted && resolvedTheme === "light";
+
   return (
-    /* Page background: very subtle lime tint at top fading to white (Figma css-4szs8t) */
+    /* Page background: very subtle lime tint at top fading to white (light mode only) */
     <div
       className="min-h-screen bg-background"
-      style={{
+      style={isLight ? {
         backgroundImage:
           "linear-gradient(to bottom, rgba(246,255,196,0.9) 0%, rgba(255,255,255,1) 48px)",
-      }}
+      } : undefined}
     >
       {/* max-w-md container, px-5 = 20px (Figma: padding 0 20px), pb-[134px] for floating nav */}
       <div className="max-w-md mx-auto px-5 pb-[134px]">
 
-        <PageHeader />
+        <PageHeader showThemeToggle />
 
         {/* Balance Card */}
         <div className="mt-2">

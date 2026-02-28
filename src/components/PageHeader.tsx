@@ -4,14 +4,24 @@ import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getInitials } from "@/lib/user-utils";
 import { cn } from "@/lib/utils";
+import { Moon, Sun } from "lucide-react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 interface PageHeaderProps {
   linkToSettings?: boolean;
   title?: string;
+  showThemeToggle?: boolean;
 }
 
-export function PageHeader({ linkToSettings = true, title }: PageHeaderProps) {
+export function PageHeader({ linkToSettings = true, title, showThemeToggle = false }: PageHeaderProps) {
   const { currentUser } = useAuth();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (!currentUser) return null;
 
@@ -80,9 +90,26 @@ export function PageHeader({ linkToSettings = true, title }: PageHeaderProps) {
     </div>
   );
 
+  const themeToggle = showThemeToggle && mounted ? (
+    <button
+      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+      className="w-11 h-11 rounded-full bg-muted flex items-center justify-center"
+      aria-label="Toggle theme"
+    >
+      {theme === "dark" ? (
+        <Sun className="w-5 h-5 text-foreground" />
+      ) : (
+        <Moon className="w-5 h-5 text-foreground" />
+      )}
+    </button>
+  ) : showThemeToggle ? (
+    <div className="w-11 h-11" />
+  ) : null;
+
   return (
-    <div className="flex items-center py-4 h-[76px]">
+    <div className="flex items-center justify-between py-4 h-[76px]">
       {leftSection}
+      {themeToggle}
     </div>
   );
 }

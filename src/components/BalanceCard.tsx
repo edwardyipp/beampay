@@ -1,7 +1,6 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect } from "react";
-import { useTheme } from "next-themes";
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
@@ -19,7 +18,6 @@ type DOEWithPermission = typeof DeviceOrientationEvent & {
 export function BalanceCard() {
   const { balance } = useWallet();
   const { currentUser } = useAuth();
-  const { resolvedTheme } = useTheme();
 
   // ── Refs ────────────────────────────────────────────────────────────────────
   const cardRef = useRef<HTMLDivElement>(null);
@@ -39,7 +37,6 @@ export function BalanceCard() {
   const currencySymbol = getCurrencySymbol(userCurrency);
   const idrAmount = convertUsdToIdr(balance);
   const isIDRUser = userCurrency === "IDR";
-  const isDark = resolvedTheme === "dark";
 
   const secondaryLabel = isIDRUser
     ? `$${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
@@ -50,21 +47,16 @@ export function BalanceCard() {
     : `${currencySymbol}${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   // ── Card background ─────────────────────────────────────────────────────────
-  const outerStyle = isDark
-    ? {
-        background:
-          "linear-gradient(to bottom right, oklch(0.85 0.26 122.4), oklch(0.3 0.18 122.4))",
-      }
-    : {
-        backgroundImage:
-          "linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(236,255,168,0.7) 45%, rgba(227,255,125,0.8) 70%, rgba(217,255,81,0.9) 100%), url('/bg-mesh-01.png')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundColor: "#c6fe1e",
-        boxShadow: active
-          ? "-4px 14px 56px 0px rgba(0,0,0,0.22)"
-          : "-2px 6px 40px 0px rgba(0,0,0,0.15)",
-      };
+  const outerStyle = {
+    backgroundImage:
+      "linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(236,255,168,0.7) 45%, rgba(227,255,125,0.8) 70%, rgba(217,255,81,0.9) 100%), url('/bg-mesh-01.png')",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    backgroundColor: "#c6fe1e",
+    boxShadow: active
+      ? "-4px 14px 56px 0px rgba(0,0,0,0.22)"
+      : "-2px 6px 40px 0px rgba(0,0,0,0.15)",
+  };
 
   // ── Shared helpers ──────────────────────────────────────────────────────────
   /** Convert an absolute client coordinate into a tilt + glare state update. */
@@ -234,7 +226,7 @@ export function BalanceCard() {
     borderRadius: "17px",
     pointerEvents: "none",
     background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 65%)`,
-    opacity: active ? (isDark ? 0.12 : 0.22) : 0,
+    opacity: active ? 0.22 : 0,
     transition: active ? "opacity 0.1s" : "opacity 0.4s",
     zIndex: 1,
   };
@@ -264,8 +256,8 @@ export function BalanceCard() {
             alt="BeamPay"
             className="w-[100px]"
             style={{
-              filter: isDark ? "brightness(0) invert(1)" : "brightness(0)",
-              opacity: isDark ? 0.45 : 0.35,
+              filter: "brightness(0)",
+              opacity: 0.35,
             }}
           />
         </div>
@@ -274,7 +266,7 @@ export function BalanceCard() {
         <div className="pl-[28px] pb-[22px] flex flex-col items-start" style={{ position: "relative", zIndex: 2, transform: "translateZ(60px)" }}>
           <p
             className="text-base font-normal"
-            style={{ color: isDark ? "oklch(0.85 0.26 122.4)" : "#618b00" }}
+            style={{ color: "#618b00" }}
           >
             {secondaryLabel}
           </p>
@@ -283,7 +275,7 @@ export function BalanceCard() {
             style={{
               fontSize: "48px",
               lineHeight: "56px",
-              color: isDark ? "oklch(0 0 0)" : "#2a2b2e",
+              color: "#2a2b2e",
             }}
           >
             {mainBalance}
