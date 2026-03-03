@@ -14,11 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { SignupFlow } from "@/components/SignupFlow";
+import { LauncherScreen } from "@/components/LauncherScreen";
 import { toast } from "sonner";
+
+type LoginPagePhase = "launcher" | "login" | "signup";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [phase, setPhase] = useState<LoginPagePhase>("launcher");
   const [isLoading, setIsLoading] = useState(false);
 
   const [email, setEmail] = useState("");
@@ -39,11 +42,20 @@ export default function LoginPage() {
     toast.info("Password reset is not available in this demo. Try creating a new account or contact support.");
   };
 
-  if (isSignUp) {
+  if (phase === "launcher") {
+    return (
+      <LauncherScreen
+        onCreateAccount={() => setPhase("signup")}
+        onLogin={() => setPhase("login")}
+      />
+    );
+  }
+
+  if (phase === "signup") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
-          <SignupFlow onSwitchToLogin={() => setIsSignUp(false)} />
+          <SignupFlow onSwitchToLogin={() => setPhase("login")} />
         </div>
       </div>
     );
@@ -110,7 +122,7 @@ export default function LoginPage() {
               Don't have an account?{" "}
               <button
                 type="button"
-                onClick={() => setIsSignUp(true)}
+                onClick={() => setPhase("signup")}
                 className="text-primary font-medium hover:underline"
               >
                 Sign up
