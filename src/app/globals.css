@@ -190,3 +190,43 @@
 .dark .pay-btn-outer {
   box-shadow: 0 0 0 2px oklch(0.2 0.02 122.4);
 }
+
+span.V9tjod {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+
+/* ── Launcher Scene Animations ──────────────────────────────── */
+.launcher-sky {
+  animation: launcher-sky-zoom 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+.launcher-market {
+  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+}
+
+.launcher-boat {
+  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+}
+
+.launcher-cta {
+  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+}
+
+@keyframes launcher-sky-zoom {
+  from {
+    transform: scale(1.2);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes launcher-slide-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

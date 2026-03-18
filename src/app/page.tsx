@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { LandingPage } from "@/components/LandingPage";
 
 export default function Home() {
   const { currentUser } = useAuth();
@@ -12,16 +11,14 @@ export default function Home() {
   useEffect(() => {
     if (currentUser) {
       router.push("/dashboard");
+    } else {
+      router.push("/login");
     }
   }, [currentUser, router]);
 
-  if (currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Redirecting...</p>
-      </div>
-    );
-  }
-
-  return <LandingPage />;
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-muted-foreground">Redirecting...</p>
+    </div>
+  );
 }
