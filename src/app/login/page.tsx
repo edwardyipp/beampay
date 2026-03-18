@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,7 +19,8 @@ import { toast } from "sonner";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const [isSignUp, setIsSignUp] = useState(false);
+  const searchParams = useSearchParams();
+  const [isSignUp, setIsSignUp] = useState(searchParams.get("signup") === "true");
   const [isLoading, setIsLoading] = useState(false);
 
   const [email, setEmail] = useState("");
