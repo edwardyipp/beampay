@@ -196,37 +196,48 @@ span.V9tjod {
   padding-bottom: 4px;
 }
 
-/* ── Launcher Scene Animations ──────────────────────────────── */
-.launcher-sky {
-  animation: launcher-sky-zoom 1.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+/* ── Launcher Animations ───────────────────────────────────── */
+.launcher-glow {
+  animation: launcher-glow-in 1.2s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.launcher-market {
-  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s both;
+.launcher-card-float {
+  animation: launcher-card-in 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
 }
 
-.launcher-boat {
-  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
+.launcher-cta-fade {
+  animation: launcher-fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
 }
 
-.launcher-cta {
-  animation: launcher-slide-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.8s both;
-}
-
-@keyframes launcher-sky-zoom {
+@keyframes launcher-glow-in {
   from {
-    transform: scale(1.2);
+    opacity: 0;
+    transform: scale(0.6);
   }
   to {
+    opacity: 0.25;
     transform: scale(1);
   }
 }
 
-@keyframes launcher-slide-up {
+@keyframes launcher-card-in {
   from {
-    transform: translateY(100%);
+    opacity: 0;
+    transform: translateY(60px) scale(0.9);
   }
   to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes launcher-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
     transform: translateY(0);
   }
 }

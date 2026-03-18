@@ -4,36 +4,52 @@ import { useRef, useState, useCallback, useEffect } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
+import { cn } from "@/lib/utils";
 
-const MAX_TILT = 14;  // degrees — pointer / touch
-const GYRO_MAX = 8;   // degrees — ambient gyroscope
+const MAX_TILT = 14;
+const GYRO_MAX = 8;
 const SCALE_ACTIVE = 1.025;
-const PERSPECTIVE = 900; // px
+const PERSPECTIVE = 900;
 
-// iOS 13+ DeviceOrientationEvent type with requestPermission
 type DOEWithPermission = typeof DeviceOrientationEvent & {
   requestPermission?: () => Promise<"granted" | "denied">;
 };
 
-export function BalanceCard() {
+interface BalanceCardProps {
+  /** When true, displays placeholder data — no context providers needed */
+  demo?: boolean;
+  demoBalance?: number;
+  demoCurrency?: string;
+  className?: string;
+}
+
+/** Public API — routes to ConnectedBalanceCard (context) or BalanceCardCore (demo) */
+export function BalanceCard({ demo, demoBalance, demoCurrency, className }: BalanceCardProps = {}) {
+  if (demo) {
+    return <BalanceCardCore balance={demoBalance ?? 1250} userCurrency={demoCurrency ?? "USD"} className={className} />;
+  }
+  return <ConnectedBalanceCard className={className} />;
+}
+
+/** Reads from WalletContext/AuthContext then delegates to BalanceCardCore */
+function ConnectedBalanceCard({ className }: { className?: string }) {
   const { balance } = useWallet();
   const { currentUser } = useAuth();
+  return <BalanceCardCore balance={balance} userCurrency={currentUser?.currency || "USD"} className={className} />;
+}
 
-  // ── Refs ────────────────────────────────────────────────────────────────────
+/** Presentational card with 3D tilt — no context dependency */
+function BalanceCardCore({ balance, userCurrency, className }: { balance: number; userCurrency: string; className?: string }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
-  // Mirror of `active` for use inside non-React event listeners (avoids stale closure)
   const activeRef = useRef(false);
-  // Slow EMA baseline for device beta — absorbs static holding angle, responds to quick tilts
   const betaBaseRef = useRef<number | null>(null);
-  // Cleanup fn for the deviceorientation listener
   const gyroCleanupRef = useRef<(() => void) | null>(null);
 
   const [tilt, setTilt] = useState({ rotX: 0, rotY: 0, glareX: 50, glareY: 50 });
-  const [active, setActive] = useState(false); // pointer hover OR touch active
+  const [active, setActive] = useState(false);
 
   // ── Currency / balance ──────────────────────────────────────────────────────
-  const userCurrency = currentUser?.currency || "USD";
   const currencySymbol = getCurrencySymbol(userCurrency);
   const idrAmount = convertUsdToIdr(balance);
   const isIDRUser = userCurrency === "IDR";
@@ -58,14 +74,13 @@ export function BalanceCard() {
       : "-2px 6px 40px 0px rgba(0,0,0,0.15)",
   };
 
-  // ── Shared helpers ──────────────────────────────────────────────────────────
-  /** Convert an absolute client coordinate into a tilt + glare state update. */
+  // ── Tilt helpers ──────────────────────────────────────────────────────────
   const applyPointerTilt = useCallback((clientX: number, clientY: number) => {
     const card = cardRef.current;
     if (!card) return;
     const rect = card.getBoundingClientRect();
-    const nx = ((clientX - rect.left) / rect.width) * 2 - 1;  // [-1, 1]
-    const ny = ((clientY - rect.top) / rect.height) * 2 - 1;  // [-1, 1]
+    const nx = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const ny = ((clientY - rect.top) / rect.height) * 2 - 1;
     setTilt({
       rotX: -ny * MAX_TILT,
       rotY: nx * MAX_TILT,
@@ -82,56 +97,31 @@ export function BalanceCard() {
     setTilt({ rotX: 0, rotY: 0, glareX: 50, glareY: 50 });
   }, []);
 
-  // ── Gyroscope (DeviceOrientation) ───────────────────────────────────────────
-  /**
-   * Attach the deviceorientation listener.
-   * Safe to call multiple times — the gyroCleanupRef guard prevents duplicates.
-   */
+  // ── Gyroscope ───────────────────────────────────────────────────────────────
   const startGyro = useCallback(() => {
     if (gyroCleanupRef.current) return;
-
     const handler = (e: DeviceOrientationEvent) => {
-      // Let pointer/touch interaction take full priority
       if (activeRef.current) return;
-
-      const gamma = e.gamma ?? 0; // left-right tilt: –90 → +90 (0 = upright)
-      const beta  = e.beta  ?? 0; // forward-back tilt: 0 → 180 (≈75–90 = normal portrait hold)
-
-      // EMA baseline — slowly tracks the user's resting hold angle
-      // so delta ≈ 0 when still and responds to quick tilts
+      const gamma = e.gamma ?? 0;
+      const beta  = e.beta  ?? 0;
       if (betaBaseRef.current === null) {
         betaBaseRef.current = beta;
-        return; // skip first frame (no delta yet)
+        return;
       }
       betaBaseRef.current = betaBaseRef.current * 0.98 + beta * 0.02;
-
       const rotY = Math.max(-GYRO_MAX, Math.min(GYRO_MAX, gamma * 0.55));
       const rotX = Math.max(-GYRO_MAX, Math.min(GYRO_MAX, -(beta - betaBaseRef.current) * 0.65));
-
-      setTilt({
-        rotX,
-        rotY,
-        glareX: 50 + rotY * 2.5,
-        glareY: 50 - rotX * 2.5,
-      });
+      setTilt({ rotX, rotY, glareX: 50 + rotY * 2.5, glareY: 50 - rotX * 2.5 });
     };
-
     window.addEventListener("deviceorientation", handler);
-    gyroCleanupRef.current = () =>
-      window.removeEventListener("deviceorientation", handler);
+    gyroCleanupRef.current = () => window.removeEventListener("deviceorientation", handler);
   }, []);
 
-  // Android: start gyro automatically (no permission required)
   useEffect(() => {
     if (typeof DeviceOrientationEvent === "undefined") return;
     const DOE = DeviceOrientationEvent as DOEWithPermission;
-    if (typeof DOE.requestPermission !== "function") {
-      startGyro();
-    }
-    return () => {
-      gyroCleanupRef.current?.();
-      gyroCleanupRef.current = null;
-    };
+    if (typeof DOE.requestPermission !== "function") startGyro();
+    return () => { gyroCleanupRef.current?.(); gyroCleanupRef.current = null; };
   }, [startGyro]);
 
   // ── Mouse handlers ──────────────────────────────────────────────────────────
@@ -139,24 +129,12 @@ export function BalanceCard() {
     (e: React.MouseEvent<HTMLDivElement>) => {
       if (rafRef.current !== null) return;
       const { clientX, clientY } = e;
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        applyPointerTilt(clientX, clientY);
-      });
+      rafRef.current = requestAnimationFrame(() => { rafRef.current = null; applyPointerTilt(clientX, clientY); });
     },
     [applyPointerTilt]
   );
-
-  const handleMouseEnter = useCallback(() => {
-    activeRef.current = true;
-    setActive(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    activeRef.current = false;
-    setActive(false);
-    resetTilt();
-  }, [resetTilt]);
+  const handleMouseEnter = useCallback(() => { activeRef.current = true; setActive(true); }, []);
+  const handleMouseLeave = useCallback(() => { activeRef.current = false; setActive(false); resetTilt(); }, [resetTilt]);
 
   // ── Touch handlers ──────────────────────────────────────────────────────────
   const handleTouchStart = useCallback(
@@ -165,57 +143,32 @@ export function BalanceCard() {
       activeRef.current = true;
       setActive(true);
       applyPointerTilt(touch.clientX, touch.clientY);
-
-      // iOS 13+: request DeviceOrientation permission on the first user gesture
       const DOE = DeviceOrientationEvent as DOEWithPermission;
-      if (
-        typeof DOE.requestPermission === "function" &&
-        !gyroCleanupRef.current
-      ) {
-        DOE.requestPermission()
-          .then((state) => {
-            if (state === "granted") startGyro();
-          })
-          .catch(() => {
-            /* permission denied — no gyro, touch-only */
-          });
+      if (typeof DOE.requestPermission === "function" && !gyroCleanupRef.current) {
+        DOE.requestPermission().then((state) => { if (state === "granted") startGyro(); }).catch(() => {});
       }
     },
     [applyPointerTilt, startGyro]
   );
-
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
       if (rafRef.current !== null) return;
       const touch = e.touches[0];
       const { clientX, clientY } = touch;
-      rafRef.current = requestAnimationFrame(() => {
-        rafRef.current = null;
-        applyPointerTilt(clientX, clientY);
-      });
+      rafRef.current = requestAnimationFrame(() => { rafRef.current = null; applyPointerTilt(clientX, clientY); });
     },
     [applyPointerTilt]
   );
-
-  const handleTouchEnd = useCallback(() => {
-    activeRef.current = false;
-    setActive(false);
-    resetTilt();
-  }, [resetTilt]);
+  const handleTouchEnd = useCallback(() => { activeRef.current = false; setActive(false); resetTilt(); }, [resetTilt]);
 
   // ── Derived styles ──────────────────────────────────────────────────────────
   const transformStyle: React.CSSProperties = {
     transform: `perspective(${PERSPECTIVE}px) rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) scale3d(${active ? SCALE_ACTIVE : 1}, ${active ? SCALE_ACTIVE : 1}, 1)`,
-    // During active interaction: no CSS transition — rAF drives updates at native 60fps.
-    // Applying a CSS transition here would make the browser interpolate ~600 intermediate
-    // states/sec (60 rAF updates × 0.1s ease), causing stutter on mid-range phones.
-    // On release: spring-back cubic-bezier easing snaps the card back smoothly.
     transition: active
       ? "none"
       : "transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.55s cubic-bezier(0.23, 1, 0.32, 1)",
     willChange: "transform",
     transformStyle: "preserve-3d",
-    // Prevent accidental text / logo selection while dragging on mobile
     userSelect: "none",
     WebkitUserSelect: "none",
   };
@@ -241,43 +194,29 @@ export function BalanceCard() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      className="rounded-[18px] p-[1px] min-h-[254px] cursor-default"
+      className={cn("rounded-[18px] p-[1px] min-h-[254px] cursor-default", className)}
       style={{ ...outerStyle, ...transformStyle }}
     >
       <div className="rounded-[17px] min-h-[252px] flex flex-col justify-between relative"
            style={{ transformStyle: "preserve-3d" }}>
-        {/* Glare overlay — tracks pointer/touch position */}
         <div style={glareStyle} aria-hidden />
 
-        {/* Logo — top right, 16px padding */}
+        {/* Logo — top right */}
         <div className="flex justify-end p-6" style={{ position: "relative", zIndex: 2, transform: "translateZ(40px)" }}>
           <img
             src="/beampay-logo.svg"
             alt="BeamPay"
             className="w-[100px]"
-            style={{
-              filter: "brightness(0)",
-              opacity: 0.35,
-            }}
+            style={{ filter: "brightness(0)", opacity: 0.35 }}
           />
         </div>
 
-        {/* Balance — bottom left, 16px padding */}
+        {/* Balance — bottom left */}
         <div className="pl-[28px] pb-[22px] flex flex-col items-start" style={{ position: "relative", zIndex: 2, transform: "translateZ(60px)" }}>
-          <p
-            className="text-base font-normal"
-            style={{ color: "#618b00" }}
-          >
+          <p className="text-base font-normal" style={{ color: "#618b00" }}>
             {secondaryLabel}
           </p>
-          <p
-            className="font-semibold"
-            style={{
-              fontSize: "48px",
-              lineHeight: "56px",
-              color: "#2a2b2e",
-            }}
-          >
+          <p className="font-semibold" style={{ fontSize: "48px", lineHeight: "56px", color: "#2a2b2e" }}>
             {mainBalance}
           </p>
         </div>
