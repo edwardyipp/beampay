@@ -29,7 +29,7 @@ export function DrawerPage({ title, children }: DrawerPageProps) {
       {/* Backdrop — dark overlay */}
       <div
         className={cn(
-          "absolute inset-0 bg-black/50 duration-300",
+          "absolute inset-0 bg-black/50 duration-300 cursor-pointer",
           isClosing ? "animate-out fade-out" : "animate-in fade-in"
         )}
         onClick={handleClose}
@@ -58,7 +58,7 @@ export function DrawerPage({ title, children }: DrawerPageProps) {
             </h1>
             <button
               onClick={handleClose}
-              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+              className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors cursor-pointer"
             >
               <X className="w-5 h-5 text-muted-foreground" />
             </button>

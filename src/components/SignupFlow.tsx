@@ -2,41 +2,62 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { validateEmail, validatePassword, validatePin } from "@/lib/validators";
+import { validateEmail, validatePassword } from "@/lib/validators";
 import { generateVerificationCode } from "@/lib/auth-utils";
-import { ArrowLeft, Eye, EyeOff, Upload, Check } from "lucide-react";
+import { parseNameFromEmail } from "@/lib/user-utils";
+import { ArrowLeft, Eye, EyeOff, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface SignupFlowProps {
   onSwitchToLogin: () => void;
 }
 
+function getPasswordStrength(password: string): {
+  level: number;
+  label: string;
+  color: string;
+} {
+  if (password.length === 0) return { level: 0, label: "", color: "" };
+  if (password.length < 6)
+    return { level: 1, label: "Weak", color: "bg-red-500" };
+
+  const hasUpper = /[A-Z]/.test(password);
+  const hasLower = /[a-z]/.test(password);
+  const hasNumber = /\d/.test(password);
+  const hasSpecial = /[^A-Za-z0-9]/.test(password);
+  const variety = [hasUpper, hasLower, hasNumber, hasSpecial].filter(
+    Boolean
+  ).length;
+
+  if (password.length >= 12 && variety >= 3)
+    return { level: 4, label: "Strong", color: "bg-green-500" };
+  if (password.length >= 8 && variety >= 2)
+    return { level: 3, label: "Good", color: "bg-[#D9FF51]" };
+  return { level: 2, label: "Fair", color: "bg-amber-500" };
+}
+
 export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
   const { signup } = useAuth();
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
+  const [emailShake, setEmailShake] = useState(false);
 
-  // Step 1: Email + Marketing Consent
+  // Step 1: Email
   const [email, setEmail] = useState("");
-  const [marketingConsent, setMarketingConsent] = useState(false);
 
   // Step 2: Password
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // Step 3: Name + Legal Consent
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [legalConsent, setLegalConsent] = useState(false);
-
-  // Step 4: Email Verification
+  // Step 3: Email Verification
   const [verificationCode] = useState(generateVerificationCode());
   const [enteredCode, setEnteredCode] = useState(["", "", "", "", "", ""]);
   const codeInputRefs = [
@@ -48,30 +69,10 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     useRef<HTMLInputElement>(null),
   ];
 
-  // Step 5: Profile Picture + PIN
-  const [profilePicture, setProfilePicture] = useState<string>("");
-  const [pin, setPin] = useState(["", "", "", ""]);
-  const [confirmPin, setConfirmPin] = useState(["", "", "", ""]);
-  const pinInputRefs = [
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-  ];
-  const confirmPinInputRefs = [
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-    useRef<HTMLInputElement>(null),
-  ];
-
   // Auto-focus on step change
   useEffect(() => {
-    if (step === 4) {
+    if (step === 3) {
       setTimeout(() => codeInputRefs[0].current?.focus(), 150);
-    }
-    if (step === 5) {
-      setTimeout(() => pinInputRefs[0].current?.focus(), 150);
     }
   }, [step]);
 
@@ -81,10 +82,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
       const fullCode = code.join("");
       if (fullCode.length === 6) {
         if (fullCode === verificationCode) {
-          setTimeout(() => {
-            setDirection("forward");
-            setStep(5);
-          }, 300);
+          setTimeout(() => handleAccountSetup(), 300);
         } else {
           toast.error("Invalid verification code. Please try again.");
         }
@@ -112,71 +110,41 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     }
   };
 
-  const handlePinChange = (
-    index: number,
-    value: string,
-    isConfirm: boolean
-  ) => {
-    if (value && !/^\d$/.test(value)) return;
-    if (isConfirm) {
-      const newPin = [...confirmPin];
-      newPin[index] = value;
-      setConfirmPin(newPin);
-      if (value && index < 3) {
-        confirmPinInputRefs[index + 1].current?.focus();
-      }
-    } else {
-      const newPin = [...pin];
-      newPin[index] = value;
-      setPin(newPin);
-      if (value && index < 3) {
-        pinInputRefs[index + 1].current?.focus();
-      } else if (value && index === 3) {
-        // Auto-focus first confirm PIN input after filling last PIN digit
-        setTimeout(() => confirmPinInputRefs[0].current?.focus(), 100);
-      }
+  const handleCodePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").trim();
+    const digits = pasted.replace(/\D/g, "").slice(0, 6);
+    if (digits.length === 0) return;
+
+    const newCode = [...enteredCode];
+    for (let i = 0; i < 6; i++) {
+      newCode[i] = digits[i] || "";
     }
-  };
+    setEnteredCode(newCode);
 
-  const handlePinKeyDown = (
-    index: number,
-    e: React.KeyboardEvent,
-    isConfirm: boolean
-  ) => {
-    const currentPin = isConfirm ? confirmPin : pin;
-    const refs = isConfirm ? confirmPinInputRefs : pinInputRefs;
-    if (e.key === "Backspace" && !currentPin[index] && index > 0) {
-      refs[index - 1].current?.focus();
+    // Focus the next empty field or the last filled one
+    const nextEmpty = newCode.findIndex((d) => !d);
+    const focusIndex = nextEmpty === -1 ? 5 : nextEmpty;
+    codeInputRefs[focusIndex].current?.focus();
+
+    if (digits.length === 6) {
+      autoAdvanceVerification(newCode);
     }
-  };
-
-  const handleAvatarSelect = (avatarId: string) => {
-    setProfilePicture(avatarId);
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be less than 2MB");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setProfilePicture(reader.result as string);
-    };
-    reader.readAsDataURL(file);
   };
 
   const validateStep1 = () => {
     if (!validateEmail(email)) {
+      setEmailShake(true);
+      setTimeout(() => setEmailShake(false), 500);
       toast.error("Please enter a valid email");
       return false;
     }
-    if (!marketingConsent) {
-      toast.error("Please accept to receive updates");
+    // Check if email is already registered
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    if (users.find((u: { email: string }) => u.email === email)) {
+      setEmailShake(true);
+      setTimeout(() => setEmailShake(false), 500);
+      toast.error("This email is already registered. Try signing in instead.");
       return false;
     }
     return true;
@@ -196,22 +164,6 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
   };
 
   const validateStep3 = () => {
-    if (!firstName.trim()) {
-      toast.error("Please enter your first name");
-      return false;
-    }
-    if (!lastName.trim()) {
-      toast.error("Please enter your last name");
-      return false;
-    }
-    if (!legalConsent) {
-      toast.error("Please accept the Terms of Service and Privacy Policy");
-      return false;
-    }
-    return true;
-  };
-
-  const validateStep4 = () => {
     const code = enteredCode.join("");
     if (code !== verificationCode) {
       toast.error("Invalid verification code");
@@ -220,36 +172,12 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     return true;
   };
 
-  const validateStep5 = () => {
-    const pinStr = pin.join("");
-    const confirmPinStr = confirmPin.join("");
-
-    if (pinStr.length !== 4) {
-      toast.error("Please enter a 4-digit PIN");
-      return false;
-    }
-
-    const pinValidation = validatePin(pinStr);
-    if (!pinValidation.valid) {
-      toast.error(pinValidation.error || "Invalid PIN");
-      return false;
-    }
-
-    if (pinStr !== confirmPinStr) {
-      toast.error("PINs do not match");
-      return false;
-    }
-
-    return true;
-  };
-
   const handleNext = () => {
     if (step === 1 && !validateStep1()) return;
     if (step === 2 && !validateStep2()) return;
-    if (step === 3 && !validateStep3()) return;
-    if (step === 4 && !validateStep4()) return;
-    if (step === 5) {
-      handleSubmit();
+    if (step === 3) {
+      if (!validateStep3()) return;
+      handleAccountSetup();
       return;
     }
     setDirection("forward");
@@ -263,57 +191,84 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep5()) return;
+  const handleAccountSetup = async () => {
+    // Double-check email isn't taken (could have been registered in another tab)
+    const users = JSON.parse(localStorage.getItem("users") || "[]");
+    if (users.find((u: { email: string }) => u.email === email)) {
+      toast.error("This email is already registered. Try signing in instead.");
+      setDirection("back");
+      setStep(1);
+      return;
+    }
 
-    setIsLoading(true);
+    setIsSettingUp(true);
+
+    // Parse name from email
+    const { firstName, lastName } = parseNameFromEmail(email);
+
+    // Simulate processing delay for premium feel
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
     try {
-      const legalConsentDate = new Date().toISOString();
       const success = await signup(
         firstName,
         lastName,
         email,
         password,
-        pin.join(""),
-        "USD",
-        profilePicture || undefined,
-        marketingConsent,
-        legalConsentDate
+        "USD"
       );
 
       if (!success) {
-        setIsLoading(false);
+        setIsSettingUp(false);
+        setDirection("back");
+        setStep(1);
       }
+      // On success, AuthContext handles redirect to /dashboard
     } catch {
       toast.error("Failed to create account");
-      setIsLoading(false);
+      setIsSettingUp(false);
     }
   };
 
   const stepTitles: Record<number, string> = {
     1: "What's your email?",
     2: "Create a password",
-    3: "What's your name?",
-    4: "Verify your email",
-    5: "Finish setting up",
+    3: "Verify your email",
   };
 
   const stepDescriptions: Record<number, string> = {
     1: "We'll use this to sign you in",
     2: "Make it strong and memorable",
-    3: "So people know who's sending them money",
-    4: "Enter the code to confirm your email",
-    5: "Choose an avatar and set your PIN",
+    3: "Enter the code to confirm your email",
   };
 
   const inputClasses =
-    "h-12 bg-white/[0.07] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20";
-
-  const pinInputClasses =
-    "w-14 h-14 text-center text-2xl font-bold bg-white/[0.07] border-white/10 text-white rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20";
+    "h-12 bg-white/[0.07] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20 transition-all duration-200 focus:shadow-[0_0_0_3px_rgba(217,255,81,0.15)]";
 
   const codeInputClasses =
-    "w-12 h-14 text-center text-xl font-bold bg-white/[0.07] border-white/10 text-white rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20";
+    "w-14 h-16 text-center text-2xl font-bold bg-white/[0.07] border-white/10 text-white rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20 transition-all duration-200 focus:shadow-[0_0_0_3px_rgba(217,255,81,0.15)]";
+
+  const strength = getPasswordStrength(password);
+
+  // Account setup animation overlay
+  if (isSettingUp) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+        <div className="flex flex-col items-center gap-6 animate-in fade-in duration-300">
+          <div className="relative">
+            <div className="w-16 h-16 rounded-full border-2 border-[#D9FF51]/20 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-[#D9FF51] animate-spin" />
+            </div>
+            <div className="absolute inset-0 rounded-full border-2 border-[#D9FF51]/10 animate-ping" />
+          </div>
+          <div className="text-center space-y-1">
+            <p className="text-lg font-semibold">Setting up your account...</p>
+            <p className="text-sm text-white/50">This won&apos;t take long</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white">
@@ -329,19 +284,20 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
 
           {/* Segmented progress bar */}
           <div className="flex-1 flex gap-1.5">
-            {[1, 2, 3, 4, 5].map((s) => (
+            {[1, 2, 3].map((s, i) => (
               <div
                 key={s}
                 className="flex-1 h-1 rounded-full overflow-hidden bg-white/10"
               >
                 <div
-                  className="h-full rounded-full transition-all duration-500 ease-out"
+                  className="h-full rounded-full"
                   style={{
                     width: s <= step ? "100%" : "0%",
                     background:
                       s <= step
                         ? "linear-gradient(90deg, #D9FF51, #A6E500)"
                         : "transparent",
+                    transition: `width 500ms cubic-bezier(0.32, 0.72, 0, 1) ${i * 50}ms`,
                   }}
                 />
               </div>
@@ -373,11 +329,11 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             style={{
               animation:
                 direction === "forward"
-                  ? "slideInRight 0.25s ease-out"
-                  : "slideInLeft 0.25s ease-out",
+                  ? "slideInRight 0.3s cubic-bezier(0.32, 0.72, 0, 1)"
+                  : "slideInLeft 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
             }}
           >
-            {/* Step 1: Email + Marketing Consent */}
+            {/* Step 1: Email */}
             {step === 1 && (
               <div className="space-y-5 flex-1 flex flex-col">
                 <div className="space-y-2">
@@ -393,31 +349,14 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                     onChange={(e) => setEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleNext()}
                     required
-                    className={inputClasses}
+                    className={`${inputClasses} ${emailShake ? "animate-shake" : ""}`}
                   />
-                </div>
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="marketing"
-                    checked={marketingConsent}
-                    onCheckedChange={(checked) =>
-                      setMarketingConsent(checked as boolean)
-                    }
-                    className="mt-0.5 border-white/20 data-[state=checked]:bg-[#D9FF51] data-[state=checked]:border-[#D9FF51] data-[state=checked]:text-[#0a0a0a]"
-                  />
-                  <label
-                    htmlFor="marketing"
-                    className="text-sm text-white/60 leading-relaxed"
-                  >
-                    I agree to receive updates and promotional emails from
-                    BeamPay
-                  </label>
                 </div>
                 <div className="flex-1" />
                 <div className="pb-8 space-y-4">
                   <Button
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px]"
+                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Continue
                   </Button>
@@ -466,6 +405,63 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                       )}
                     </button>
                   </div>
+                  {/* Password strength bar */}
+                  {password.length > 0 && (
+                    <div className="space-y-1.5">
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4].map((level) => (
+                          <div
+                            key={level}
+                            className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden"
+                          >
+                            <div
+                              className={`h-full rounded-full transition-all duration-300 ${
+                                level <= strength.level
+                                  ? strength.color
+                                  : "bg-transparent"
+                              }`}
+                              style={{
+                                width:
+                                  level <= strength.level ? "100%" : "0%",
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      <p
+                        className={`text-xs transition-colors duration-200 ${
+                          strength.level <= 1
+                            ? "text-red-400"
+                            : strength.level === 2
+                              ? "text-amber-400"
+                              : strength.level === 3
+                                ? "text-[#D9FF51]/80"
+                                : "text-green-400"
+                        }`}
+                      >
+                        {strength.label}
+                      </p>
+                    </div>
+                  )}
+                  {/* Password requirements */}
+                  <div className="space-y-1 pt-1">
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${password.length >= 6 ? "text-green-400" : "text-white/30"}`}>
+                      <span className={`inline-block w-1 h-1 rounded-full ${password.length >= 6 ? "bg-green-400" : "bg-white/30"}`} />
+                      At least 6 characters
+                    </p>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                      <span className={`inline-block w-1 h-1 rounded-full ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
+                      Upper &amp; lowercase letters
+                    </p>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/\d/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                      <span className={`inline-block w-1 h-1 rounded-full ${/\d/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
+                      A number
+                    </p>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[^A-Za-z0-9]/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                      <span className={`inline-block w-1 h-1 rounded-full ${/[^A-Za-z0-9]/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
+                      A special character
+                    </p>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label
@@ -500,106 +496,34 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                       )}
                     </button>
                   </div>
-                  {password.length > 0 && password.length < 6 && (
-                    <p className="text-xs text-[#D9FF51]/60">
-                      {6 - password.length} more character
-                      {6 - password.length !== 1 ? "s" : ""} needed
-                    </p>
-                  )}
                   {password.length >= 6 &&
                     confirmPassword.length > 0 &&
                     password === confirmPassword && (
-                      <p className="text-xs text-green-400 flex items-center gap-1">
+                      <p className="text-xs text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
                         <Check className="w-3 h-3" /> Passwords match
                       </p>
                     )}
                 </div>
                 <div className="flex-1" />
-                <div className="pb-8">
+                <div className="pb-8 space-y-3">
                   <Button
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px]"
+                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Continue
                   </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Name + Legal Consent */}
-            {step === 3 && (
-              <div className="space-y-5 flex-1 flex flex-col">
-                <div className="flex gap-3">
-                  <div className="space-y-2 flex-1">
-                    <Label
-                      htmlFor="firstName"
-                      className="text-white/80 text-sm"
-                    >
-                      First name
-                    </Label>
-                    <Input
-                      id="firstName"
-                      type="text"
-                      autoFocus
-                      placeholder="John"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                      className={inputClasses}
-                    />
-                  </div>
-                  <div className="space-y-2 flex-1">
-                    <Label
-                      htmlFor="lastName"
-                      className="text-white/80 text-sm"
-                    >
-                      Last name
-                    </Label>
-                    <Input
-                      id="lastName"
-                      type="text"
-                      placeholder="Doe"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleNext()}
-                      required
-                      className={inputClasses}
-                    />
-                  </div>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="legal"
-                    checked={legalConsent}
-                    onCheckedChange={(checked) =>
-                      setLegalConsent(checked as boolean)
-                    }
-                    className="mt-0.5 border-white/20 data-[state=checked]:bg-[#D9FF51] data-[state=checked]:border-[#D9FF51] data-[state=checked]:text-[#0a0a0a]"
-                  />
-                  <label
-                    htmlFor="legal"
-                    className="text-sm text-white/60 leading-relaxed"
-                  >
-                    I agree to BeamPay&apos;s{" "}
-                    <span className="text-[#D9FF51]/80">Terms of Service</span>{" "}
+                  <p className="text-center text-xs text-[#555] leading-relaxed">
+                    By creating an account, you agree to our{" "}
+                    <span className="text-[#D9FF51]/70">Terms of Service</span>{" "}
                     and{" "}
-                    <span className="text-[#D9FF51]/80">Privacy Policy</span>
-                  </label>
-                </div>
-                <div className="flex-1" />
-                <div className="pb-8">
-                  <Button
-                    onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px]"
-                  >
-                    Continue
-                  </Button>
+                    <span className="text-[#D9FF51]/70">Privacy Policy</span>
+                  </p>
                 </div>
               </div>
             )}
 
-            {/* Step 4: Email Verification */}
-            {step === 4 && (
+            {/* Step 3: Email Verification */}
+            {step === 3 && (
               <div className="space-y-6 flex-1 flex flex-col">
                 <div className="text-center space-y-3">
                   <p className="text-sm text-white/60">
@@ -630,6 +554,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                           handleCodeChange(index, e.target.value)
                         }
                         onKeyDown={(e) => handleCodeKeyDown(index, e)}
+                        onPaste={index === 0 ? handleCodePaste : undefined}
                         className={codeInputClasses}
                       />
                     ))}
@@ -639,154 +564,9 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 <div className="pb-8">
                   <Button
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px]"
+                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Verify Email
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Step 5: Profile Picture + PIN */}
-            {step === 5 && (
-              <div className="space-y-7 flex-1 flex flex-col overflow-y-auto pb-4">
-                {/* Profile picture section */}
-                <div className="space-y-4">
-                  <div className="flex justify-center">
-                    {profilePicture ? (
-                      profilePicture.startsWith("data:") ? (
-                        <img
-                          src={profilePicture}
-                          alt="Profile"
-                          className="w-20 h-20 rounded-full object-cover ring-2 ring-[#D9FF51]/30"
-                        />
-                      ) : (
-                        <img
-                          src={`/avatars/${profilePicture}.svg`}
-                          alt="Avatar"
-                          className="w-20 h-20 rounded-full ring-2 ring-[#D9FF51]/30"
-                        />
-                      )
-                    ) : (
-                      <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-xl font-bold text-white/50 ring-2 ring-white/10">
-                        {firstName.charAt(0)}
-                        {lastName.charAt(0)}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex justify-center gap-2">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
-                      <button
-                        key={num}
-                        onClick={() => handleAvatarSelect(`avatar-${num}`)}
-                        className={`w-10 h-10 rounded-full border-2 transition-all ${
-                          profilePicture === `avatar-${num}`
-                            ? "border-[#D9FF51] scale-110"
-                            : "border-white/10 hover:border-white/30"
-                        }`}
-                      >
-                        <img
-                          src={`/avatars/avatar-${num}.svg`}
-                          alt={`Avatar ${num}`}
-                          className="w-full h-full rounded-full"
-                        />
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex justify-center">
-                    <label
-                      htmlFor="upload"
-                      className="inline-flex items-center gap-1.5 text-sm text-[#D9FF51]/70 hover:text-[#D9FF51] cursor-pointer transition-colors"
-                    >
-                      <Upload className="w-3.5 h-3.5" />
-                      Upload photo
-                    </label>
-                    <Input
-                      id="upload"
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.gif"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="h-px bg-white/10" />
-
-                {/* PIN section */}
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-white/80 text-sm">
-                      Security PIN
-                    </Label>
-                    <p className="text-xs text-white/40 mt-0.5">
-                      4-digit PIN for transactions and sensitive actions
-                    </p>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-xs text-white/50 mb-2 text-center">
-                        Create PIN
-                      </p>
-                      <div className="flex justify-center gap-3">
-                        {pin.map((digit, index) => (
-                          <Input
-                            key={index}
-                            ref={pinInputRefs[index]}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) =>
-                              handlePinChange(index, e.target.value, false)
-                            }
-                            onKeyDown={(e) =>
-                              handlePinKeyDown(index, e, false)
-                            }
-                            className={pinInputClasses}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs text-white/50 mb-2 text-center">
-                        Confirm PIN
-                      </p>
-                      <div className="flex justify-center gap-3">
-                        {confirmPin.map((digit, index) => (
-                          <Input
-                            key={index}
-                            ref={confirmPinInputRefs[index]}
-                            type="text"
-                            inputMode="numeric"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) =>
-                              handlePinChange(index, e.target.value, true)
-                            }
-                            onKeyDown={(e) =>
-                              handlePinKeyDown(index, e, true)
-                            }
-                            className={pinInputClasses}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex-1" />
-                <div className="pb-8 pt-2">
-                  <Button
-                    onClick={handleNext}
-                    disabled={isLoading}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px]"
-                  >
-                    {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </div>
               </div>
@@ -795,7 +575,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
         </div>
       </div>
 
-      {/* Slide animations */}
+      {/* Animations */}
       <style jsx>{`
         @keyframes slideInRight {
           from {
@@ -815,6 +595,27 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
           to {
             opacity: 1;
             transform: translateX(0);
+          }
+        }
+        .animate-shake {
+          animation: shake 0.4s ease-in-out;
+        }
+        @keyframes shake {
+          0%,
+          100% {
+            transform: translateX(0);
+          }
+          20% {
+            transform: translateX(-6px);
+          }
+          40% {
+            transform: translateX(6px);
+          }
+          60% {
+            transform: translateX(-4px);
+          }
+          80% {
+            transform: translateX(4px);
           }
         }
       `}</style>

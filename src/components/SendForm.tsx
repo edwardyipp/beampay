@@ -2,16 +2,20 @@
 
 import { useState } from "react";
 import { useWallet } from "@/context/WalletContext";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinVerificationModal } from "@/components/PinVerificationModal";
+import { PinSetupModal } from "@/components/PinSetupModal";
 import { toast } from "sonner";
 
 export function SendForm() {
   const { balance, send } = useWallet();
+  const { currentUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
 
   const [recipientEmail, setRecipientEmail] = useState("");
   const [amount, setAmount] = useState("");
@@ -34,10 +38,14 @@ export function SendForm() {
       return;
     }
 
-    // Require PIN verification
+    // Require PIN — setup first if not set
     setPendingRecipient(recipientEmail);
     setPendingAmount(sendAmount);
-    setShowPinModal(true);
+    if (!currentUser?.pin) {
+      setShowPinSetup(true);
+    } else {
+      setShowPinModal(true);
+    }
   };
 
   const executeSend = async () => {
@@ -97,6 +105,15 @@ export function SendForm() {
           {isLoading ? "Sending..." : "Send Money"}
         </Button>
       </form>
+
+      <PinSetupModal
+        isOpen={showPinSetup}
+        onClose={() => setShowPinSetup(false)}
+        onSuccess={() => {
+          setShowPinSetup(false);
+          setShowPinModal(true);
+        }}
+      />
 
       <PinVerificationModal
         isOpen={showPinModal}

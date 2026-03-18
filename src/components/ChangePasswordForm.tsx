@@ -6,12 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinVerificationModal } from "@/components/PinVerificationModal";
+import { PinSetupModal } from "@/components/PinSetupModal";
 import { toast } from "sonner";
 
 export function ChangePasswordForm() {
-  const { changePassword } = useAuth();
+  const { currentUser, changePassword } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
 
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -33,10 +35,14 @@ export function ChangePasswordForm() {
       return;
     }
 
-    // Require PIN verification
+    // Require PIN — setup first if not set
     setPendingCurrentPassword(currentPassword);
     setPendingNewPassword(newPassword);
-    setShowPinModal(true);
+    if (!currentUser?.pin) {
+      setShowPinSetup(true);
+    } else {
+      setShowPinModal(true);
+    }
   };
 
   const executePasswordChange = async () => {
@@ -101,6 +107,15 @@ export function ChangePasswordForm() {
           {isLoading ? "Changing..." : "Change Password"}
         </Button>
       </form>
+
+      <PinSetupModal
+        isOpen={showPinSetup}
+        onClose={() => setShowPinSetup(false)}
+        onSuccess={() => {
+          setShowPinSetup(false);
+          setShowPinModal(true);
+        }}
+      />
 
       <PinVerificationModal
         isOpen={showPinModal}

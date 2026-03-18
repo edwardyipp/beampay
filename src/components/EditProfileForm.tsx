@@ -5,49 +5,20 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PinVerificationModal } from "@/components/PinVerificationModal";
-
 export function EditProfileForm() {
   const { currentUser, updateProfile } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [showPinModal, setShowPinModal] = useState(false);
 
   const [firstName, setFirstName] = useState(currentUser?.firstName || "");
   const [lastName, setLastName] = useState(currentUser?.lastName || "");
-  const [email, setEmail] = useState(currentUser?.email || "");
-
-  // Store pending changes
-  const [pendingFirstName, setPendingFirstName] = useState("");
-  const [pendingLastName, setPendingLastName] = useState("");
-  const [pendingEmail, setPendingEmail] = useState("");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // Check if email changed - requires PIN verification
-    if (email !== currentUser?.email) {
-      setPendingFirstName(firstName);
-      setPendingLastName(lastName);
-      setPendingEmail(email);
-      setShowPinModal(true);
-    } else {
-      // Name change only - no PIN required
-      await executeUpdate(firstName, lastName, email);
-    }
-  };
-
-  const executeUpdate = async (first: string, last: string, em: string) => {
     setIsLoading(true);
     try {
-      await updateProfile(first, last, em);
+      await updateProfile(firstName, lastName, currentUser?.email || "");
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePinSuccess = () => {
-    setShowPinModal(false);
-    executeUpdate(pendingFirstName, pendingLastName, pendingEmail);
   };
 
   return (
@@ -80,15 +51,13 @@ export function EditProfileForm() {
           <Input
             id="email"
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
+            value={currentUser?.email || ""}
+            disabled
+            className="opacity-60"
           />
-          {email !== currentUser?.email && (
-            <p className="text-xs text-amber-600 dark:text-amber-400">
-              Changing your email requires PIN verification
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Email cannot be changed
+          </p>
         </div>
 
         <Button type="submit" disabled={isLoading}>
@@ -96,13 +65,6 @@ export function EditProfileForm() {
         </Button>
       </form>
 
-      <PinVerificationModal
-        isOpen={showPinModal}
-        onClose={() => setShowPinModal(false)}
-        onSuccess={handlePinSuccess}
-        title="Verify your identity"
-        description="Enter your PIN to change your email address"
-      />
     </>
   );
 }

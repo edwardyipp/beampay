@@ -62,11 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     lastName: string,
     email: string,
     password: string,
-    pin: string,
-    currency: string,
-    profilePicture?: string,
-    marketingConsent?: boolean,
-    legalConsentDate?: string
+    currency: string
   ): Promise<boolean> => {
     try {
       // Get existing users
@@ -78,19 +74,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      // Create new user
+      // Create new user — PIN and profile picture are deferred to settings/first use
       const newUser: User = {
         id: crypto.randomUUID(),
         firstName,
         lastName,
         email,
         password, // In a real app, this would be hashed
-        pin,
+        pin: "", // Deferred — set on first PIN-gated action
         emailVerified: true, // Set to true after mock verification
         currency,
-        profilePicture,
-        marketingConsent,
-        legalConsentDate,
+        marketingConsent: false,
+        legalConsentDate: new Date().toISOString(),
       };
 
       // Save to localStorage
@@ -108,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setCurrentUser(newUser);
       toast.success("Account created successfully!");
-      router.push("/security-info"); // Changed from /dashboard
+      router.push("/dashboard");
       return true;
     } catch (error) {
       toast.error("Failed to create account");
@@ -232,6 +227,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setPin = async (pin: string): Promise<boolean> => {
+    if (!currentUser) return false;
+
+    try {
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const updatedUsers = users.map((u: User) =>
+        u.id === currentUser.id ? { ...u, pin } : u
+      );
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+      const updatedUser = { ...currentUser, pin };
+      setCurrentUser(updatedUser);
+      return true;
+    } catch {
+      toast.error("Failed to set PIN");
+      return false;
+    }
+  };
+
+  const updateProfilePicture = async (picture: string): Promise<boolean> => {
+    if (!currentUser) return false;
+
+    try {
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      const updatedUsers = users.map((u: User) =>
+        u.id === currentUser.id ? { ...u, profilePicture: picture } : u
+      );
+      localStorage.setItem("users", JSON.stringify(updatedUsers));
+
+      const updatedUser = { ...currentUser, profilePicture: picture };
+      setCurrentUser(updatedUser);
+      return true;
+    } catch {
+      toast.error("Failed to update profile picture");
+      return false;
+    }
+  };
+
   const deleteAccount = () => {
     if (!currentUser) return;
 
@@ -268,6 +301,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         updateProfile,
         changePassword,
         deleteAccount,
+        setPin,
+        updateProfilePicture,
       }}
     >
       {children}

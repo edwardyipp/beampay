@@ -47,15 +47,17 @@ export function PageHeader({ linkToSettings = true, title, backHref, showThemeTo
     );
   }
 
-  const displayName =
-    currentUser.firstName && currentUser.lastName
+  const displayName = currentUser.firstName
+    ? currentUser.lastName
       ? `${currentUser.firstName} ${currentUser.lastName}`
-      : currentUser.email.split("@")[0];
+      : currentUser.firstName
+    : currentUser.email.split("@")[0];
 
-  const initials =
-    currentUser.firstName && currentUser.lastName
+  const initials = currentUser.firstName
+    ? currentUser.lastName
       ? getInitials(currentUser.firstName, currentUser.lastName)
-      : currentUser.email.charAt(0).toUpperCase();
+      : currentUser.firstName.charAt(0).toUpperCase()
+    : currentUser.email.charAt(0).toUpperCase();
 
   const avatarShadow = { boxShadow: "0px 8px 40px 0px rgba(0,0,0,0.12)" };
 

@@ -40,8 +40,7 @@ flowchart TD
     LOGIN -->|Sign In — security-info not dismissed| SECINFO["/security-info"]
     LOGIN -->|Sign In — security-info dismissed| DASH
     LOGIN -->|Click Sign up| SIGNUP["SignupFlow\n(rendered on /login)"]
-    SIGNUP -->|Account created| SECINFO
-    SECINFO -->|I Understand button| DASH
+    SIGNUP -->|Account created| DASH
 
     DASH -->|Transfer button| TRANSFER["/transfer"]
     DASH -->|Add Funds button| TOPUP["/top-up"]
@@ -77,24 +76,20 @@ flowchart TD
 
 ## SignupFlow Detail
 
-Five-step wizard rendered on `/login` when user clicks "Sign up".
+Three-step wizard rendered on `/login` when user clicks "Sign up".
 
 ```mermaid
 flowchart LR
-    S1["Step 1\nEmail\n+ Marketing Consent"] --> S2
-    S2["Step 2\nPassword\n+ Confirm Password"] --> S3
-    S3["Step 3\nFirst Name + Last Name\n+ Legal Consent"] --> S4
-    S4["Step 4\nEmail Verification\n6-digit code shown in UI"] --> S5
-    S5["Step 5\nProfile Picture (optional)\n+ 4-digit PIN\n+ Confirm PIN"]
-    S5 -->|Create Account| CREATED["Account created\n→ /security-info"]
+    S1["Step 1\nEmail"] --> S2
+    S2["Step 2\nPassword\n+ Confirm Password\n+ Inline Legal Consent"] --> S3
+    S3["Step 3\nEmail Verification\n6-digit code with paste support"]
+    S3 -->|Auto-advance / Verify| SETUP["Account Setup Animation\nParse name from email\n→ /dashboard"]
 
     S2 -->|Back| S1
     S3 -->|Back| S2
-    S4 -->|Back| S3
-    S5 -->|Back| S4
 ```
 
-> Note: Currency selection was removed from the UI. All accounts are created with USD. The `currency` field exists in the `User` type and defaults to `"USD"`.
+> Note: Name is auto-parsed from email (e.g., `john.doe@gmail.com` → John Doe). PIN and profile picture are deferred — PIN is set on first PIN-gated action via `PinSetupModal`.
 
 ---
 
@@ -133,11 +128,10 @@ flowchart LR
 - "Sign up" toggle link → switches to SignupFlow
 
 **UI elements — SignupFlow state:**
-- Step 1: Email input, marketing consent checkbox, Continue button, "Sign in" back link
-- Step 2: Password + Confirm Password inputs
-- Step 3: First Name + Last Name inputs, legal consent checkbox
-- Step 4: 6-digit code displayed in a highlighted card; 6 auto-advancing digit inputs; "Verify Email" button
-- Step 5: Avatar grid (8 preset SVG options) + file upload (max 2 MB, stored as base64); PIN (4 digits) + Confirm PIN inputs; "Create Account" button
+- Step 1: Email input, Continue button, "Sign in" back link. Validates email format AND checks for duplicate registration.
+- Step 2: Password + Confirm Password inputs with strength bar (4-segment: weak/fair/good/strong) + requirements checklist + inline legal consent text below Continue
+- Step 3: 6-digit code displayed in a highlighted card; 6 auto-advancing digit inputs with paste support; auto-submit on correct code completion; "Verify Email" button
+- Post-verification: "Setting up your account..." full-screen animation → name parsed from email → account created → redirect to /dashboard
 
 **Mocked:**
 - Forgot password → `toast.info` only, no email sent
@@ -265,8 +259,8 @@ Each item shows: colored icon in rounded background, label + description, chevro
 
 **UI elements:**
 - First Name + Last Name inputs (pre-filled)
-- Email input (pre-filled); changing email shows amber PIN-required warning
-- "Save Changes" button; PIN modal only appears if email was changed
+- Email input (disabled/read-only, shows current email with "Email cannot be changed" helper text)
+- "Save Changes" button (no PIN verification required — only name changes are allowed)
 
 ---
 
@@ -346,9 +340,9 @@ Each item shows: colored icon in rounded background, label + description, chevro
 
 ### `/design-system`
 
-**Layout:** Navbar (legacy — not yet updated)
+**Layout:** SVG logo header (`/public/logo-beampay-neon.svg` via next/image) + theme toggle (moon/sun using next-themes). All colors use theme-aware semantic classes.
 **Auth guard:** No
-**Purpose:** Internal UI component showcase for development reference
+**Purpose:** Internal UI component showcase for development reference. Sections: Colors, Typography, pill-style Buttons, Form Elements (dark + light inputs), Cards (gradient card with lime gradient and dark text), and "Signup Flow Patterns" with interactive demos.
 
 ---
 
@@ -366,14 +360,11 @@ Each item shows: colored icon in rounded background, label + description, chevro
 
 1. Visit `/` — no session → redirect to `/login`
 2. Click "Sign up" → `SignupFlow` mounts
-3. Step 1: enter email, check marketing consent → Continue
-4. Step 2: enter password + confirmation (min 6 chars) → Continue
-5. Step 3: enter first/last name, check legal consent → Continue
-6. Step 4: 6-digit code displayed in UI; type it into auto-advancing inputs → "Verify Email"
-7. Step 5: optionally select avatar or upload photo; enter 4-digit PIN + confirm (rejects sequential/repeated patterns)
-8. "Create Account" → `signup()` writes user to localStorage, initialises wallet with $0.00 balance, sets `currentUserId` → redirect to `/security-info`
-9. View security reminders; optionally check "Don't show again" → "I Understand" → `/dashboard`
-10. Dashboard shows $0.00 balance, empty Activities
+3. Step 1: enter email → Continue (validates format + checks duplicate)
+4. Step 2: enter password + confirmation (min 6 chars, strength bar) → Continue (legal consent auto-accepted via inline text)
+5. Step 3: 6-digit code displayed in UI; type or paste into inputs → auto-submit on correct code
+6. "Setting up your account..." animation → name parsed from email → `signup()` creates user with empty PIN → wallet initialized → redirect to `/dashboard`
+7. Dashboard shows $0.00 balance, empty Activities
 
 ### 2. Returning Login
 
@@ -411,11 +402,12 @@ Each item shows: colored icon in rounded background, label + description, chevro
 | Trigger | Page | Modal Title | Modal Description |
 |---------|------|-------------|-------------------|
 | Send money | `/transfer` | "Confirm Transaction" | "Enter your PIN to send $X.XX to {email}" |
-| Change email | `/settings/profile` | "Verify your identity" | "Enter your PIN to change your email address" |
 | Change password | `/settings/security` | "Verify your identity" | "Enter your PIN to change your password" |
 | Delete account | `/settings/close-account` | "Confirm Account Deletion" | "Enter your PIN to permanently delete your account" |
 
 PIN rules: 4 digits; sequential patterns (1234, 2345 … 9012) and repeated digits (0000 … 9999) are rejected by `validatePin()`. 3 wrong attempts → 5-minute in-memory lockout with live countdown. Lockout resets if the modal is closed and reopened.
+
+If the user has not yet created a PIN (`user.pin === ""`), a `PinSetupModal` is shown first to create the PIN before proceeding with verification.
 
 ---
 
@@ -427,3 +419,5 @@ PIN rules: 4 digits; sequential patterns (1234, 2345 … 9012) and repeated digi
 | `currentUserId` | `signup()`, `login()` | Page auth guards, `AuthContext` mount | `logout()`, `deleteAccount()` |
 | `wallet_${userId}` | `signup()` (init), `topUp()`, `send()` | `WalletContext` mount | `deleteAccount()` |
 | `security-info-dismissed-${userId}` | `/security-info` dismiss action | `login()` (routing decision) | `deleteAccount()` |
+
+> Note: `security-info-dismissed` is no longer written during signup (new users go straight to dashboard), but still applies on subsequent logins to control whether `/security-info` is shown.

@@ -42,11 +42,7 @@ export interface AuthContextType {
     lastName: string,
     email: string,
     password: string,
-    pin: string,
-    currency: string,
-    profilePicture?: string,
-    marketingConsent?: boolean,
-    legalConsentDate?: string
+    currency: string
   ) => Promise<boolean>;
   logout: () => void;
   updateProfile: (firstName: string, lastName: string, email: string) => Promise<boolean>;
@@ -55,6 +51,8 @@ export interface AuthContextType {
     newPassword: string
   ) => Promise<boolean>;
   deleteAccount: () => void;
+  setPin: (pin: string) => Promise<boolean>;
+  updateProfilePicture: (picture: string) => Promise<boolean>;
 }
 
 export interface PinVerificationModalProps {
@@ -63,6 +61,12 @@ export interface PinVerificationModalProps {
   onSuccess: () => void;
   title: string;
   description: string;
+}
+
+export interface PinSetupModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: () => void;
 }
 
 export interface WalletContextType {

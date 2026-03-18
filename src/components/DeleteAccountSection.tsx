@@ -15,15 +15,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { PinVerificationModal } from "@/components/PinVerificationModal";
+import { PinSetupModal } from "@/components/PinSetupModal";
 
 export function DeleteAccountSection() {
-  const { deleteAccount } = useAuth();
+  const { currentUser, deleteAccount } = useAuth();
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [showPinModal, setShowPinModal] = useState(false);
+  const [showPinSetup, setShowPinSetup] = useState(false);
 
   const handleDeleteClick = () => {
     setShowConfirmDialog(false);
-    setShowPinModal(true);
+    if (!currentUser?.pin) {
+      setShowPinSetup(true);
+    } else {
+      setShowPinModal(true);
+    }
   };
 
   const handlePinSuccess = () => {
@@ -69,6 +75,15 @@ export function DeleteAccountSection() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      <PinSetupModal
+        isOpen={showPinSetup}
+        onClose={() => setShowPinSetup(false)}
+        onSuccess={() => {
+          setShowPinSetup(false);
+          setShowPinModal(true);
+        }}
+      />
 
       <PinVerificationModal
         isOpen={showPinModal}

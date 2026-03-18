@@ -38,7 +38,7 @@ src/
 │   ├── transactions/page.tsx
 │   ├── settings/
 │   │   ├── page.tsx            # Settings hub (menu linking to sub-pages)
-│   │   ├── profile/page.tsx    # Edit name and email
+│   │   ├── profile/page.tsx    # Edit name (email is read-only)
 │   │   ├── appearance/page.tsx # Theme selection (Light/Dark/System)
 │   │   ├── security/page.tsx   # Change password
 │   │   ├── payment/page.tsx    # Manage saved cards
@@ -58,7 +58,7 @@ src/
 │   ├── validators.ts     # PIN, email, password validation rules
 │   ├── auth-utils.ts     # generateVerificationCode()
 │   ├── currency-utils.ts # getCurrencySymbol, formatCurrency, USD→IDR
-│   ├── user-utils.ts     # getInitials, getFullName
+│   ├── user-utils.ts     # getInitials, getFullName, parseNameFromEmail
 │   └── utils.ts          # cn() Tailwind class merge helper
 └── types/
     └── index.ts          # All shared TypeScript interfaces
@@ -124,11 +124,13 @@ interface WalletData {
 ### AuthContext
 
 ```typescript
-const { user, login, signup, logout, updateProfile, changePassword, deleteAccount } = useAuth();
+const { user, login, signup, logout, updateProfile, changePassword, deleteAccount, setPin, updateProfilePicture } = useAuth();
 ```
 
 - `user` is `null` when logged out; pages redirect via `useRouter` if unauthenticated.
-- `signup` accepts all `User` fields and writes to the `users` array in localStorage.
+- `signup(firstName, lastName, email, password, currency)` — creates a new user with no PIN, profile picture, or marketing consent. PIN and profile picture are set later via dedicated methods.
+- `setPin(pin)` — sets or updates the user's 4-digit PIN.
+- `updateProfilePicture(picture)` — sets or updates the user's profile picture (avatar key or base64 data URI).
 - A migration helper in the context upgrades Phase-1 user records that may lack newer fields.
 
 ### WalletContext
@@ -151,15 +153,13 @@ Thin wrapper around `next-themes`. Components use Tailwind's `dark:` prefix for 
 
 ### SignupFlow (`src/components/SignupFlow.tsx`)
 
-Five-step registration wizard rendered on `/login`:
+Three-step registration wizard rendered on `/login`:
 
-1. Email + marketing consent
-2. Password creation
-3. Name + legal consent
-4. Email verification (mock 6-digit code via `generateVerificationCode()`)
-5. Profile picture (avatar or upload) + 4-digit PIN creation
+1. Email (validates format AND checks for duplicate registration on Continue)
+2. Password creation (with strength bar + requirements checklist + inline legal consent text)
+3. Email verification (6-digit code with paste support + auto-submit on correct code)
 
-> Currency selection was removed from the UI. All accounts default to `"USD"`.
+Post-verification: "Setting up your account..." full-screen animation plays, `handleAccountSetup` double-checks email uniqueness (sends user back to step 1 if taken), then `parseNameFromEmail()` extracts first/last name from the email local part. Account is created and user is redirected to `/dashboard`. All accounts default to `"USD"`. PIN defaults to empty string; profile picture is not set during signup.
 
 ### PageHeader (`src/components/PageHeader.tsx`)
 
@@ -169,6 +169,8 @@ Shared header used on all authenticated pages. Three modes:
 - **Title + back mode** (`title` + `backHref` props): Shows a back arrow button (rounded circle) + page title. Used on settings sub-pages.
 - **Title mode** (`title` prop only): Shows a plain page title (e.g., "Settings", "Activities"). Used on `/transactions` and `/settings`.
 
+Display name logic: shows `firstName` alone if `lastName` is empty (does not fall back to email). Initials logic follows the same pattern.
+
 Props: `linkToSettings?: boolean`, `title?: string`, `backHref?: string`, `showThemeToggle?: boolean`.
 
 ### DrawerPage (`src/components/DrawerPage.tsx`)
@@ -177,8 +179,8 @@ Slide-up drawer wrapper for overlay-style pages. Used on `/transfer` and `/top-u
 
 - Slides up from bottom with `animate-in slide-in-from-bottom` (tw-animate-css)
 - Slides down on close with `animate-out slide-out-to-bottom`
-- Dark backdrop overlay (click to close)
-- Rounded top corners (`rounded-t-[20px]`), drag handle pill, title + close button (X icon)
+- Dark backdrop overlay (click to close, `cursor-pointer`)
+- Rounded top corners (`rounded-t-[20px]`), drag handle pill, title + close button (X icon, `cursor-pointer`)
 - Scrollable content area (`h-[90vh]`)
 - Close button calls `router.back()` — returns to the referring page
 - No BottomNav (drawer overlays the previous page)
@@ -203,6 +205,16 @@ Reusable modal for PIN-gated actions (send money, delete account, etc.):
 - 3 attempts allowed before a **5-minute lockout**
 - Calls `onSuccess` callback when PIN matches `user.pin`
 
+### PinSetupModal (`src/components/PinSetupModal.tsx`)
+
+Triggered when a PIN-gated action is attempted and the user has no PIN set (`user.pin === ""`):
+
+- "Set up your security PIN" dialog
+- Create 4-digit PIN + Confirm PIN
+- Same validation rules as PinVerificationModal (no sequential, no repeated)
+- On success: saves PIN via `setPin()` context method, then proceeds with the original action
+- Used as a guard in SendForm, DeleteAccountSection, and ChangePasswordForm (NOT used in EditProfileForm — email is read-only so no PIN-gated action exists there)
+
 ### SettingsPageWrapper (`src/components/SettingsPageWrapper.tsx`)
 
 Reusable wrapper for settings sub-pages. Provides auth check + redirect, `PageHeader` with title and `backHref`, slide-in animation (`animate-in slide-in-from-right duration-200`), and consistent layout (`max-w-md mx-auto px-5 pb-10`). No BottomNav.
@@ -210,6 +222,15 @@ Reusable wrapper for settings sub-pages. Provides auth check + redirect, `PageHe
 ### BalanceCard (`src/components/BalanceCard.tsx`)
 
 Displays the user's balance in their selected currency plus an IDR equivalent (static rate: 1 USD = 15,800 IDR). Features a 3D tilt effect driven by pointer/touch position and device gyroscope (DeviceOrientation API). The logo and balance text use `translateZ()` to pop above the card surface. Uses `preserve-3d` on both the outer card and inner container. **Always uses light mode styling** (lime gradient, dark text) regardless of the active theme.
+
+### Base UI Component Styles
+
+The following shadcn/ui primitives have been customized from their defaults:
+
+- **button.tsx**: `rounded-full` (pill shape), `h-12`, `font-semibold`, `cursor-pointer`, `active:scale-[0.98]` press feedback.
+- **input.tsx**: `rounded-xl`, `h-12`, `px-4`, `transition-all duration-200` for smooth focus transitions.
+
+These are intentional overrides to match the BeamPay design language. When regenerating via `npx shadcn@latest add`, these customizations will be lost and must be re-applied.
 
 ---
 
@@ -230,6 +251,14 @@ getCurrencySymbol(code)         // "USD" → "$"
 getCurrencyName(code)           // "USD" → "US Dollar"
 convertUsdToIdr(amount)         // static 15,800 rate
 formatCurrency(amount, code)    // locale-aware; no decimals for JPY
+```
+
+### `src/lib/user-utils.ts`
+
+```typescript
+getInitials(user)              // "John Doe" → "JD"
+getFullName(user)              // { firstName: "John", lastName: "Doe" } → "John Doe"
+parseNameFromEmail(email)      // "john.doe@gmail.com" → { firstName: "John", lastName: "Doe" }
 ```
 
 ### `src/lib/utils.ts`
@@ -264,7 +293,7 @@ npm run lint   # ESLint (next/core-web-vitals + TypeScript)
 2. Wrap content with `<SettingsPageWrapper title="Page Title">` — this handles auth, header with back button, layout, and animation.
 3. Add the menu item to the `menuItems` array in `src/app/settings/page.tsx`.
 
-> **Note:** `Navbar.tsx` and `Footer.tsx` are legacy components used only on `/design-system` and `/documentation`. All authenticated pages use `BottomNav` + `PageHeader`.
+> **Note:** `Navbar.tsx` and `Footer.tsx` are legacy components used only on `/documentation`. The `/design-system` page uses its own header (SVG logo via next/image + theme toggle). All authenticated pages use `BottomNav` + `PageHeader`.
 
 ### Adding a New shadcn/ui Component
 
@@ -272,7 +301,7 @@ npm run lint   # ESLint (next/core-web-vitals + TypeScript)
 npx shadcn@latest add <component>
 ```
 
-This drops a file into `src/components/ui/`. Do **not** edit generated files by hand — re-run the command to regenerate after upstream updates.
+This drops a file into `src/components/ui/`. Generally do **not** edit generated files by hand — re-run the command to regenerate after upstream updates. **Exception:** `button.tsx` and `input.tsx` have custom style overrides; see "Base UI Component Styles" section.
 
 ### Adding a New Feature Component
 
@@ -373,7 +402,7 @@ Both use `useTheme()` from next-themes. The dashboard toggle uses `resolvedTheme
 3. **PIN validation is client-side only.** The PIN stored in `user.pin` is compared directly in `PinVerificationModal`.
 4. **No tests.** There is no test framework configured. If adding tests, set up Jest + React Testing Library and document it here.
 5. **Static exchange rate.** `convertUsdToIdr` uses a hardcoded rate. Do not call an external API for currency conversion without updating this section.
-6. **shadcn/ui files in `src/components/ui/` are generated.** Treat them as read-only; use the CLI to regenerate.
+6. **shadcn/ui files in `src/components/ui/` are generated.** Treat them as read-only; use the CLI to regenerate. **Exception:** `button.tsx` and `input.tsx` have intentional style overrides (pill shape, taller height, etc.) — see "Base UI Component Styles" section. Re-apply those customizations after regenerating.
 
 ---
 
@@ -386,6 +415,7 @@ Both use `useTheme()` from next-themes. The dashboard toggle uses `resolvedTheme
 | Recipient lookup (send) | Scans the `users` array in localStorage |
 | Profile picture upload | Converts file to base64 and stores in the user record |
 | Security info dismissal | Flag written to `localStorage` on first dismiss |
+| Email name parsing | `parseNameFromEmail()` extracts name from email local part; simulates enrichment API |
 
 ---
 
