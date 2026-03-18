@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/button";
+import { HapticButton } from "@/components/HapticButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PinVerificationModal } from "@/components/PinVerificationModal";
@@ -101,9 +101,9 @@ export function SendForm() {
           </p>
         </div>
 
-        <Button type="submit" disabled={isLoading} className="w-full">
+        <HapticButton type="submit" disabled={isLoading} className="w-full">
           {isLoading ? "Sending..." : "Send Money"}
-        </Button>
+        </HapticButton>
       </form>
 
       <PinSetupModal

@@ -10,11 +10,13 @@ import { TransactionHistory } from "@/components/TransactionHistory";
 import { BottomNav } from "@/components/BottomNav";
 import { PageHeader } from "@/components/PageHeader";
 import { ArrowRightLeft, Plus } from "lucide-react";
+import { useWebHaptics } from "web-haptics/react";
 
 export default function DashboardPage() {
   const { currentUser } = useAuth();
   const router = useRouter();
   const { resolvedTheme } = useTheme();
+  const { trigger } = useWebHaptics();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -56,6 +58,7 @@ export default function DashboardPage() {
         <div className="grid grid-cols-2 gap-3 mt-4">
           <Link
             href="/transfer"
+            onClick={() => trigger("success")}
             className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
             <ArrowRightLeft className="w-5 h-5" />
@@ -63,6 +66,7 @@ export default function DashboardPage() {
           </Link>
           <Link
             href="/top-up"
+            onClick={() => trigger("success")}
             className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
             <Plus className="w-5 h-5" />

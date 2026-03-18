@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { HapticButton } from "@/components/HapticButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { validateEmail, validatePassword } from "@/lib/validators";
@@ -354,12 +354,12 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 </div>
                 <div className="flex-1" />
                 <div className="pb-8 space-y-4">
-                  <Button
+                  <HapticButton
                     onClick={handleNext}
                     className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Continue
-                  </Button>
+                  </HapticButton>
                   <p className="text-center text-sm text-[#666]">
                     Already have an account?{" "}
                     <button
@@ -506,12 +506,12 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 </div>
                 <div className="flex-1" />
                 <div className="pb-8 space-y-3">
-                  <Button
+                  <HapticButton
                     onClick={handleNext}
                     className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Continue
-                  </Button>
+                  </HapticButton>
                   <p className="text-center text-xs text-[#555] leading-relaxed">
                     By creating an account, you agree to our{" "}
                     <span className="text-[#D9FF51]/70">Terms of Service</span>{" "}
@@ -562,12 +562,12 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 </div>
                 <div className="flex-1" />
                 <div className="pb-8">
-                  <Button
+                  <HapticButton
                     onClick={handleNext}
                     className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
                   >
                     Verify Email
-                  </Button>
+                  </HapticButton>
                 </div>
               </div>
             )}
