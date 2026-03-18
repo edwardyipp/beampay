@@ -9,7 +9,7 @@ interface LauncherScreenProps {
   onLogin: () => void;
 }
 
-type LauncherPhase = "splash" | "scene";
+type LauncherPhase = "splash" | "scene" | "cta";
 
 const LAUNCHER_IMAGES = [
   "/launcher/background-sky.png",
@@ -52,28 +52,24 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
     }
   }, [splashMinElapsed, imagesReady]);
 
+  // Scene -> CTA after animations complete (~2.2s)
+  useEffect(() => {
+    if (phase !== "scene") return;
+    const timer = setTimeout(() => setPhase("cta"), 2200);
+    return () => clearTimeout(timer);
+  }, [phase]);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-background">
-      {/* ===== Splash Background (fades out, logo moves separately) ===== */}
+      {/* ===== Splash Logo ===== */}
       <div
         className={cn(
-          "absolute inset-0 z-40 bg-background transition-opacity duration-700",
+          "absolute inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-700",
           phase === "splash" ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-      />
-
-      {/* ===== Logo — stays visible, floats up to sky center ===== */}
-      <div
-        className={cn(
-          "absolute inset-x-0 z-50 flex justify-center pointer-events-none transition-all duration-1000 ease-out",
-          phase === "splash"
-            ? "top-1/2 -translate-y-1/2"
-            : "top-[15%] -translate-y-1/2"
         )}
       >
         <img
-          src="/logo-beampay-dark.svg"
+          src="/beampay-logo.svg"
           alt="BeamPay"
           className="w-48 h-auto"
         />
@@ -112,8 +108,14 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
             />
           </div>
 
-          {/* ===== CTA Overlay — slides up with the boat ===== */}
-          <div className="absolute inset-x-0 bottom-0 z-30 launcher-cta">
+          {/* ===== CTA Overlay ===== */}
+          <div
+            className={cn(
+              "absolute inset-x-0 bottom-0 z-30 transition-opacity duration-700",
+              phase === "cta" ? "opacity-100" : "opacity-0 pointer-events-none"
+            )}
+          >
+            {/* White gradient — transparent top fading to solid white bottom */}
             <div className="h-[45vh] flex flex-col justify-end items-center pb-12 px-6"
               style={{
                 background: "linear-gradient(to bottom, transparent 0%, rgba(255,255,255,0.4) 25%, rgba(255,255,255,0.85) 50%, white 65%)",
