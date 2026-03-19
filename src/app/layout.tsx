@@ -6,6 +6,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { WalletProvider } from "@/context/WalletContext";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { Toaster } from "@/components/ui/sonner";
+import { Analytics } from "@vercel/analytics/react";
 
 const dmSans = DM_Sans({
   variable: "--font-dm-sans",
@@ -41,6 +42,7 @@ export default function RootLayout({
               {children}
               {drawer}
               <Toaster />
+              <Analytics />
             </WalletProvider>
           </AuthProvider>
         </ThemeProvider>
