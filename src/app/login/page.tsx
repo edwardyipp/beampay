@@ -52,15 +52,17 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
       <div className="px-5 pt-4 pb-2">
-        <button
+        <Button
+          variant="outline"
+          size="icon-lg"
           onClick={() => setPhase("launcher")}
-          className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors"
+          aria-label="Go back"
         >
           <ArrowLeft className="w-5 h-5" />
-        </button>
+        </Button>
       </div>
 
       {/* Content */}
@@ -71,7 +73,7 @@ export default function LoginPage() {
             <h1 className="text-[28px] font-bold tracking-tight mb-2">
               Welcome back
             </h1>
-            <p className="text-[#888] text-[15px]">
+            <p className="text-muted-foreground text-[15px]">
               Sign in to access your wallet
             </p>
           </div>
@@ -79,7 +81,7 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5 flex-1">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white/80 text-sm">
+              <Label htmlFor="email" className="text-foreground/80 text-sm">
                 Email
               </Label>
               <Input
@@ -90,19 +92,19 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 bg-white/[0.07] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20"
+                className="h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20"
               />
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-white/80 text-sm">
+                <Label htmlFor="password" className="text-foreground/80 text-sm">
                   Password
                 </Label>
                 <button
                   type="button"
                   onClick={handleForgotPassword}
-                  className="text-xs text-[#D9FF51]/70 hover:text-[#D9FF51] transition-colors"
+                  className="text-xs text-primary/70 hover:text-primary transition-colors"
                 >
                   Forgot password?
                 </button>
@@ -116,12 +118,12 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="h-12 bg-white/[0.07] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20 pr-11"
+                  className="h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20 pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors"
                 >
                   {showPassword ? (
                     <EyeOff className="w-[18px] h-[18px]" />
@@ -135,7 +137,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] transition-colors text-[15px]"
+              className="w-full"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -143,12 +145,12 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="py-8 text-center">
-            <p className="text-[#666] text-sm">
+            <p className="text-muted-foreground text-sm">
               Don&apos;t have an account?{" "}
               <button
                 type="button"
                 onClick={() => setPhase("signup")}
-                className="text-[#D9FF51] font-medium hover:underline"
+                className="text-primary font-medium hover:underline"
               >
                 Create one
               </button>

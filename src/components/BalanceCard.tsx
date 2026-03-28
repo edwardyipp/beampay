@@ -194,10 +194,10 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      className={cn("rounded-[18px] p-[1px] min-h-[254px] cursor-default", className)}
+      className={cn("rounded-[18px] p-[1px] aspect-[1.586] cursor-default", className)}
       style={{ ...outerStyle, ...transformStyle }}
     >
-      <div className="rounded-[17px] min-h-[252px] flex flex-col justify-between relative"
+      <div className="rounded-[17px] h-full flex flex-col justify-between relative"
            style={{ transformStyle: "preserve-3d" }}>
         <div style={glareStyle} aria-hidden />
 

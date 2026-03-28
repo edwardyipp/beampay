@@ -22,11 +22,11 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
   }, []);
 
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0a0a0a]">
+    <div className="fixed inset-0 overflow-hidden bg-background">
       {/* ===== Splash Logo ===== */}
       <div
         className={cn(
-          "absolute inset-0 z-50 flex items-center justify-center bg-[#0a0a0a] transition-opacity duration-700",
+          "absolute inset-0 z-50 flex items-center justify-center bg-background transition-opacity duration-700",
           phase === "splash" ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
       >
@@ -46,7 +46,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
             <div
               className="absolute w-[380px] h-[380px] rounded-full opacity-25 launcher-glow"
               style={{
-                background: "radial-gradient(circle, oklch(0.93 0.26 122.4) 0%, transparent 70%)",
+                background: `radial-gradient(circle, var(--color-neon-300) 0%, transparent 70%)`,
                 filter: "blur(80px)",
               }}
             />
@@ -61,7 +61,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
           <div className="px-6 pb-10 launcher-cta-fade">
             {/* Tagline */}
             <div className="mb-8">
-              <p className="text-[#999] text-base leading-relaxed">
+              <p className="text-muted-foreground text-base leading-relaxed">
                 Your digital wallet for instant transfers,
                 <br />
                 easy top-ups, and secure payments.
@@ -69,7 +69,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
               <h1 className="mt-2 text-[28px] font-bold leading-tight">
                 <span
                   style={{
-                    background: "linear-gradient(90deg, #D9FF51, #A6E500)",
+                    background: `linear-gradient(90deg, var(--color-neon-300), var(--color-neon-400))`,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
@@ -83,16 +83,19 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
             <div className="w-full max-w-md space-y-3">
               <Button
                 onClick={onCreateAccount}
-                className="w-full h-14 text-base font-semibold rounded-full bg-white text-[#0a0a0a] hover:bg-white/90"
+                size="lg"
+                className="w-full"
               >
                 Create new account
               </Button>
-              <button
+              <Button
                 onClick={onLogin}
-                className="w-full h-12 text-base font-medium text-[#999] hover:text-white transition-colors"
+                variant="ghost"
+                size="md"
+                className="w-full"
               >
                 I already have account
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -4,6 +4,19 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* ── Neon Lime primitive scale ────────────────────────────── */
+  --color-neon-50:  #FCFFE5;
+  --color-neon-100: #F6FFC7;
+  --color-neon-200: #ECFF95;
+  --color-neon-300: #D9FF51;
+  --color-neon-400: #C6F625;
+  --color-neon-500: #A7DD05;
+  --color-neon-600: #81B100;
+  --color-neon-700: #618605;
+  --color-neon-800: #4E690B;
+  --color-neon-900: #41590E;
+  --color-neon-950: #213201;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-dm-sans);
@@ -58,27 +71,27 @@
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: #C6F625;
+  --primary-foreground: #213201;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.556 0 0);
   --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent-foreground: #4E690B;
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.985 0 0);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
+  --ring: #C6F625;
+  --chart-1: #A7DD05;
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --primary-light: oklch(0.4 0.1 250);
-  --primary-dark: oklch(0.15 0 0);
-  --primary-ring: oklch(0.708 0 0);
+  --primary-light: #ECFF95;
+  --primary-dark: #A7DD05;
+  --primary-ring: #C6F625;
   --sidebar: oklch(0.985 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
@@ -96,35 +109,35 @@
   --card-foreground: oklch(1 0 0);
   --popover: oklch(0.15 0.01 122.4);
   --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.93 0.26 122.4);
-  --primary-foreground: oklch(0 0 0);
+  --primary: #D9FF51;
+  --primary-foreground: #213201;
   --secondary: oklch(1 0 0 / 0.1);
   --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.2 0.02 122.4);
   --muted-foreground: oklch(0.7 0 0);
   --accent: oklch(1 0 0 / 0.1);
-  --accent-foreground: oklch(0.93 0.26 122.4);
+  --accent-foreground: #D9FF51;
   --destructive: oklch(0.62 0.25 25);
   --destructive-foreground: oklch(1 0 0);
   --border: oklch(1 0 0 / 0.15);
   --input: oklch(1 0 0 / 0.15);
-  --ring: oklch(0.93 0.26 122.4);
-  --chart-1: oklch(0.93 0.26 122.4);
+  --ring: #D9FF51;
+  --chart-1: #D9FF51;
   --chart-2: oklch(0.85 0.2 150);
   --chart-3: oklch(0.88 0.2 100);
   --chart-4: oklch(0.82 0.25 180);
   --chart-5: oklch(0.75 0.2 220);
   --sidebar: oklch(0.1 0.01 122.4);
   --sidebar-foreground: oklch(1 0 0);
-  --sidebar-primary: oklch(0.93 0.26 122.4);
-  --sidebar-primary-foreground: oklch(0 0 0);
+  --sidebar-primary: #D9FF51;
+  --sidebar-primary-foreground: #213201;
   --sidebar-accent: oklch(1 0 0 / 0.1);
-  --sidebar-accent-foreground: oklch(0.93 0.26 122.4);
+  --sidebar-accent-foreground: #D9FF51;
   --sidebar-border: oklch(1 0 0 / 0.15);
-  --sidebar-ring: oklch(0.93 0.26 122.4);
-  --primary-light: oklch(0.96 0.18 122.4);
-  --primary-dark: oklch(0.85 0.26 122.4);
-  --primary-ring: oklch(0.93 0.26 122.4);
+  --sidebar-ring: #D9FF51;
+  --primary-light: #ECFF95;
+  --primary-dark: #C6F625;
+  --primary-ring: #D9FF51;
 }
 
 @layer base {
@@ -134,6 +147,10 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-optical-sizing: auto;
+    min-width: 375px;
+  }
+  a, button, [role="button"], [role="link"] {
+    cursor: pointer;
   }
 }
 
@@ -157,8 +174,8 @@
   align-items: center;
   flex: 1 0 0;
   border-radius: 26px;
-  border: 1px solid #81B700;
-  background: linear-gradient(180deg, #D9FF51 0%, #81B700 100%);
+  border: 1px solid #81B100;
+  background: linear-gradient(180deg, #D9FF51 0%, #81B100 100%);
   box-shadow: 0 0 0 2px #E5E7EB;
 }
 
@@ -172,7 +189,7 @@
   gap: 2px;
   align-self: stretch;
   border-radius: 21px;
-  background: linear-gradient(0deg, #D9FF51 0%, #A6E500 100%);
+  background: linear-gradient(0deg, #D9FF51 0%, #A7DD05 100%);
 }
 
 .pay-btn-inner svg,

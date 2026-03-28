@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 import { HapticButton } from "@/components/HapticButton";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ function getPasswordStrength(password: string): {
   if (password.length >= 12 && variety >= 3)
     return { level: 4, label: "Strong", color: "bg-green-500" };
   if (password.length >= 8 && variety >= 2)
-    return { level: 3, label: "Good", color: "bg-[#D9FF51]" };
+    return { level: 3, label: "Good", color: "bg-primary" };
   return { level: 2, label: "Fair", color: "bg-amber-500" };
 }
 
@@ -243,27 +244,27 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
   };
 
   const inputClasses =
-    "h-12 bg-white/[0.07] border-white/10 text-white placeholder:text-white/30 rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20 transition-all duration-200 focus:shadow-[0_0_0_3px_rgba(217,255,81,0.15)]";
+    "h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all duration-200";
 
   const codeInputClasses =
-    "w-14 h-16 text-center text-2xl font-bold bg-white/[0.07] border-white/10 text-white rounded-xl focus:border-[#D9FF51]/50 focus:ring-[#D9FF51]/20 transition-all duration-200 focus:shadow-[0_0_0_3px_rgba(217,255,81,0.15)]";
+    "w-14 h-16 text-center text-2xl font-bold bg-foreground/[0.07] border-foreground/10 text-foreground rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all duration-200";
 
   const strength = getPasswordStrength(password);
 
   // Account setup animation overlay
   if (isSettingUp) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] text-white">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background text-foreground">
         <div className="flex flex-col items-center gap-6 animate-in fade-in duration-300">
           <div className="relative">
-            <div className="w-16 h-16 rounded-full border-2 border-[#D9FF51]/20 flex items-center justify-center">
-              <Loader2 className="w-8 h-8 text-[#D9FF51] animate-spin" />
+            <div className="w-16 h-16 rounded-full border-2 border-primary/20 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-[#D9FF51]/10 animate-ping" />
+            <div className="absolute inset-0 rounded-full border-2 border-primary/10 animate-ping" />
           </div>
           <div className="text-center space-y-1">
             <p className="text-lg font-semibold">Setting up your account...</p>
-            <p className="text-sm text-white/50">This won&apos;t take long</p>
+            <p className="text-sm text-foreground/50">This won&apos;t take long</p>
           </div>
         </div>
       </div>
@@ -271,23 +272,26 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white">
+    <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Header with back button and progress */}
       <div className="px-5 pt-4 pb-2">
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="outline"
+            size="icon-lg"
             onClick={step === 1 ? onSwitchToLogin : handleBack}
-            className="w-10 h-10 rounded-full flex items-center justify-center text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0"
+            aria-label="Go back"
+            className="shrink-0"
           >
             <ArrowLeft className="w-5 h-5" />
-          </button>
+          </Button>
 
           {/* Segmented progress bar */}
           <div className="flex-1 flex gap-1.5">
             {[1, 2, 3].map((s, i) => (
               <div
                 key={s}
-                className="flex-1 h-1 rounded-full overflow-hidden bg-white/10"
+                className="flex-1 h-1 rounded-full overflow-hidden bg-foreground/10"
               >
                 <div
                   className="h-full rounded-full"
@@ -295,7 +299,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                     width: s <= step ? "100%" : "0%",
                     background:
                       s <= step
-                        ? "linear-gradient(90deg, #D9FF51, #A6E500)"
+                        ? "linear-gradient(90deg, var(--color-neon-300), var(--color-neon-400))"
                         : "transparent",
                     transition: `width 500ms cubic-bezier(0.32, 0.72, 0, 1) ${i * 50}ms`,
                   }}
@@ -317,7 +321,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             >
               {stepTitles[step]}
             </h1>
-            <p className="text-[#888] text-[15px]">
+            <p className="text-muted-foreground text-[15px]">
               {stepDescriptions[step]}
             </p>
           </div>
@@ -337,7 +341,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             {step === 1 && (
               <div className="space-y-5 flex-1 flex flex-col">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/80 text-sm">
+                  <Label htmlFor="email" className="text-foreground/80 text-sm">
                     Email address
                   </Label>
                   <Input
@@ -356,16 +360,16 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 <div className="pb-8 space-y-4">
                   <HapticButton
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
+                    className="w-full"
                   >
                     Continue
                   </HapticButton>
-                  <p className="text-center text-sm text-[#666]">
+                  <p className="text-center text-sm text-muted-foreground">
                     Already have an account?{" "}
                     <button
                       type="button"
                       onClick={onSwitchToLogin}
-                      className="text-[#D9FF51] font-medium hover:underline"
+                      className="text-primary font-medium hover:underline"
                     >
                       Sign in
                     </button>
@@ -378,7 +382,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             {step === 2 && (
               <div className="space-y-5 flex-1 flex flex-col">
                 <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white/80 text-sm">
+                  <Label htmlFor="password" className="text-foreground/80 text-sm">
                     Password
                   </Label>
                   <div className="relative">
@@ -396,7 +400,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors"
                     >
                       {showPassword ? (
                         <EyeOff className="w-[18px] h-[18px]" />
@@ -412,7 +416,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                         {[1, 2, 3, 4].map((level) => (
                           <div
                             key={level}
-                            className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden"
+                            className="flex-1 h-1 rounded-full bg-foreground/10 overflow-hidden"
                           >
                             <div
                               className={`h-full rounded-full transition-all duration-300 ${
@@ -435,7 +439,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                             : strength.level === 2
                               ? "text-amber-400"
                               : strength.level === 3
-                                ? "text-[#D9FF51]/80"
+                                ? "text-primary/80"
                                 : "text-green-400"
                         }`}
                       >
@@ -445,19 +449,19 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   )}
                   {/* Password requirements */}
                   <div className="space-y-1 pt-1">
-                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${password.length >= 6 ? "text-green-400" : "text-white/30"}`}>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${password.length >= 6 ? "text-green-400" : "text-foreground/30"}`}>
                       <span className={`inline-block w-1 h-1 rounded-full ${password.length >= 6 ? "bg-green-400" : "bg-white/30"}`} />
                       At least 6 characters
                     </p>
-                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "text-green-400" : "text-foreground/30"}`}>
                       <span className={`inline-block w-1 h-1 rounded-full ${/[A-Z]/.test(password) && /[a-z]/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
                       Upper &amp; lowercase letters
                     </p>
-                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/\d/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/\d/.test(password) ? "text-green-400" : "text-foreground/30"}`}>
                       <span className={`inline-block w-1 h-1 rounded-full ${/\d/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
                       A number
                     </p>
-                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[^A-Za-z0-9]/.test(password) ? "text-green-400" : "text-white/30"}`}>
+                    <p className={`text-xs flex items-center gap-1.5 transition-colors ${/[^A-Za-z0-9]/.test(password) ? "text-green-400" : "text-foreground/30"}`}>
                       <span className={`inline-block w-1 h-1 rounded-full ${/[^A-Za-z0-9]/.test(password) ? "bg-green-400" : "bg-white/30"}`} />
                       A special character
                     </p>
@@ -466,7 +470,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 <div className="space-y-2">
                   <Label
                     htmlFor="confirmPassword"
-                    className="text-white/80 text-sm"
+                    className="text-foreground/80 text-sm"
                   >
                     Confirm password
                   </Label>
@@ -487,7 +491,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-foreground/70 transition-colors"
                     >
                       {showConfirmPassword ? (
                         <EyeOff className="w-[18px] h-[18px]" />
@@ -508,15 +512,15 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 <div className="pb-8 space-y-3">
                   <HapticButton
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
+                    className="w-full"
                   >
                     Continue
                   </HapticButton>
-                  <p className="text-center text-xs text-[#555] leading-relaxed">
+                  <p className="text-center text-xs text-muted-foreground leading-relaxed">
                     By creating an account, you agree to our{" "}
-                    <span className="text-[#D9FF51]/70">Terms of Service</span>{" "}
+                    <span className="text-primary/70">Terms of Service</span>{" "}
                     and{" "}
-                    <span className="text-[#D9FF51]/70">Privacy Policy</span>
+                    <span className="text-primary/70">Privacy Policy</span>
                   </p>
                 </div>
               </div>
@@ -526,19 +530,19 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             {step === 3 && (
               <div className="space-y-6 flex-1 flex flex-col">
                 <div className="text-center space-y-3">
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-foreground/60">
                     We sent a code to{" "}
-                    <span className="text-white font-medium">{email}</span>
+                    <span className="text-foreground font-medium">{email}</span>
                   </p>
-                  <div className="inline-flex items-center gap-2 bg-[#D9FF51]/10 border border-[#D9FF51]/20 rounded-lg px-4 py-2.5">
-                    <span className="text-xs text-white/50">Demo code:</span>
-                    <span className="text-lg font-bold tracking-[0.2em] text-[#D9FF51]">
+                  <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5">
+                    <span className="text-xs text-foreground/50">Demo code:</span>
+                    <span className="text-lg font-bold tracking-[0.2em] text-primary">
                       {verificationCode}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-center block mb-3 text-white/80 text-sm">
+                  <Label className="text-center block mb-3 text-foreground/80 text-sm">
                     Enter verification code
                   </Label>
                   <div className="flex justify-center gap-2.5">
@@ -564,7 +568,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                 <div className="pb-8">
                   <HapticButton
                     onClick={handleNext}
-                    className="w-full h-12 rounded-full bg-[#D9FF51] text-[#0a0a0a] font-semibold hover:bg-[#c5eb3a] text-[15px] active:scale-[0.98] transition-transform"
+                    className="w-full"
                   >
                     Verify Email
                   </HapticButton>

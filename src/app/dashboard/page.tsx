@@ -9,6 +9,7 @@ import { BalanceCard } from "@/components/BalanceCard";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { BottomNav } from "@/components/BottomNav";
 import { PageHeader } from "@/components/PageHeader";
+import { Button } from "@/components/ui/button";
 import { ArrowRightLeft, Plus } from "lucide-react";
 import { useWebHaptics } from "web-haptics/react";
 
@@ -56,22 +57,28 @@ export default function DashboardPage() {
 
         {/* Action Buttons — h-14 (56px), rounded-full (9999px), text-lg (18px), gap-3 (12px) */}
         <div className="grid grid-cols-2 gap-3 mt-4">
-          <Link
-            href="/transfer"
+          <Button
+            asChild
+            size="lg"
+            className="w-full bg-foreground text-background hover:bg-foreground/90 hover:scale-[1.01] hover:shadow-lg active:scale-95 active:shadow-none"
             onClick={() => trigger("success")}
-            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
-            <ArrowRightLeft className="w-5 h-5" />
-            Transfer
-          </Link>
-          <Link
-            href="/top-up"
+            <Link href="/transfer">
+              <ArrowRightLeft />
+              Transfer
+            </Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            className="w-full bg-foreground text-background hover:bg-foreground/90 hover:scale-[1.01] hover:shadow-lg active:scale-95 active:shadow-none"
             onClick={() => trigger("success")}
-            className="flex items-center justify-center gap-3 h-14 bg-foreground text-background rounded-full font-semibold text-lg transition-all duration-150 hover:scale-[1.01] hover:opacity-90 hover:shadow-lg active:scale-95 active:opacity-80 active:shadow-none"
           >
-            <Plus className="w-5 h-5" />
-            Add Funds
-          </Link>
+            <Link href="/top-up">
+              <Plus />
+              Add Funds
+            </Link>
+          </Button>
         </div>
 
         {/* Activities Section — gap-16px between header and list (Figma css-57omnr) */}
@@ -82,7 +89,7 @@ export default function DashboardPage() {
             {/* View all — 16px medium, #81b700 (Figma css-y7193a) */}
             <Link
               href="/transactions"
-              className="text-base font-medium text-[#81b700] dark:text-[#A6E500]"
+              className="text-base font-medium text-neon-700 dark:text-primary"
             >
               View all
             </Link>

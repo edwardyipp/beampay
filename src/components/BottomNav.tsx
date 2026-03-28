@@ -23,8 +23,8 @@ export function BottomNav() {
           href="/dashboard"
           className={`w-[92px] h-[54px] rounded-full flex flex-col justify-center items-center gap-0.5 transition-colors ${
             pathname === "/dashboard"
-              ? "text-[#030712] dark:text-foreground"
-              : "text-[#9ca3af]"
+              ? "text-foreground dark:text-foreground"
+              : "text-muted-foreground"
           }`}
         >
           <Home className="w-[22px] h-[22px]" />
@@ -36,8 +36,8 @@ export function BottomNav() {
           href="/transactions"
           className={`w-[92px] h-[54px] rounded-full flex flex-col justify-center items-center gap-0.5 transition-colors ${
             pathname === "/transactions"
-              ? "text-[#030712] dark:text-foreground"
-              : "text-[#9ca3af]"
+              ? "text-foreground dark:text-foreground"
+              : "text-muted-foreground"
           }`}
         >
           <Clock className="w-[22px] h-[22px]" />
