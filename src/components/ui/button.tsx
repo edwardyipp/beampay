@@ -1,6 +1,9 @@
+"use client"
+
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
+import { useWebHaptics } from "web-haptics/react"
 
 import { cn } from "@/lib/utils"
 
@@ -43,12 +46,22 @@ function Button({
   variant = "primary",
   size = "md",
   asChild = false,
+  onClick,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
   }) {
+  const { trigger } = useWebHaptics()
   const Comp = asChild ? Slot.Root : "button"
+
+  const handleClick = React.useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      if (variant === "primary") trigger("success")
+      onClick?.(e)
+    },
+    [trigger, variant, onClick]
+  )
 
   return (
     <Comp
@@ -56,6 +69,7 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      onClick={handleClick}
       {...props}
     />
   )

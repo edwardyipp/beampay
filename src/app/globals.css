@@ -149,6 +149,10 @@
     font-optical-sizing: auto;
     min-width: 375px;
   }
+  h1 {
+    font-size: var(--text-3xl);
+    font-weight: var(--font-weight-bold);
+  }
   a, button, [role="button"], [role="link"] {
     cursor: pointer;
   }

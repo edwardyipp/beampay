@@ -194,7 +194,7 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      className={cn("rounded-[18px] p-[1px] aspect-[1.586] cursor-default", className)}
+      className={cn("rounded-xl p-[1px] aspect-[1.586] cursor-default", className)}
       style={{ ...outerStyle, ...transformStyle }}
     >
       <div className="rounded-[17px] h-full flex flex-col justify-between relative"

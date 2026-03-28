@@ -70,18 +70,18 @@ export default function LoginPage() {
         <div className="max-w-md w-full mx-auto flex-1 flex flex-col">
           {/* Title section */}
           <div className="mt-4 mb-10">
-            <h1 className="text-[28px] font-bold tracking-tight mb-2">
+            <h1 className="tracking-tight mb-2">
               Welcome back
             </h1>
-            <p className="text-muted-foreground text-[15px]">
-              Sign in to access your wallet
+            <p className="text-muted-foreground">
+              Log in to access your wallet
             </p>
           </div>
 
           {/* Form */}
           <form onSubmit={handleLogin} className="space-y-5 flex-1">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-foreground/80 text-sm">
+              <Label htmlFor="email" className="text-foreground/80">
                 Email
               </Label>
               <Input
@@ -98,16 +98,18 @@ export default function LoginPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="password" className="text-foreground/80 text-sm">
+                <Label htmlFor="password" className="text-foreground/80">
                   Password
                 </Label>
-                <button
+                <Button
                   type="button"
+                  variant="link"
+                  size="md"
                   onClick={handleForgotPassword}
-                  className="text-xs text-primary/70 hover:text-primary transition-colors"
+                  className="px-0 h-auto text-primary/70 hover:text-primary"
                 >
                   Forgot password?
-                </button>
+                </Button>
               </div>
               <div className="relative">
                 <Input
@@ -138,6 +140,7 @@ export default function LoginPage() {
               type="submit"
               disabled={isLoading}
               className="w-full"
+              size="lg"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </Button>
@@ -145,15 +148,17 @@ export default function LoginPage() {
 
           {/* Footer */}
           <div className="py-8 text-center">
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="md"
                 onClick={() => setPhase("signup")}
-                className="text-primary font-medium hover:underline"
+                className="px-0 h-auto"
               >
                 Create one
-              </button>
+              </Button>
             </p>
           </div>
         </div>

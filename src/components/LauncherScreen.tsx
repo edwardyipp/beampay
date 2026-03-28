@@ -58,44 +58,46 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
           </div>
 
           {/* Bottom content — tagline + CTA */}
-          <div className="px-6 pb-10 launcher-cta-fade">
-            {/* Tagline */}
-            <div className="mb-8">
-              <p className="text-muted-foreground text-base leading-relaxed">
-                Your digital wallet for instant transfers,
-                <br />
-                easy top-ups, and secure payments.
-              </p>
-              <h1 className="mt-2 text-[28px] font-bold leading-tight">
-                <span
-                  style={{
-                    background: `linear-gradient(90deg, var(--color-neon-300), var(--color-neon-400))`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  Pay anyone, instantly.
-                </span>
-              </h1>
-            </div>
+          <div className="flex flex-col items-center px-6 pb-10 launcher-cta-fade">
+            <div className="w-full max-w-[340px]">
+              {/* Tagline */}
+              <div className="mb-8">
+                <p className="text-muted-foreground text-base leading-relaxed">
+                  Your digital wallet for instant transfers,
+                  <br />
+                  easy top-ups, and secure payments.
+                </p>
+                <h1 className="mt-2 text-4xl font-bold leading-tight">
+                  <span
+                    style={{
+                      background: `linear-gradient(90deg, var(--color-neon-300), var(--color-neon-400))`,
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    Pay anyone, instantly.
+                  </span>
+                </h1>
+              </div>
 
-            {/* CTA buttons */}
-            <div className="w-full max-w-md space-y-3">
-              <Button
-                onClick={onCreateAccount}
-                size="lg"
-                className="w-full"
-              >
-                Create new account
-              </Button>
-              <Button
-                onClick={onLogin}
-                variant="ghost"
-                size="md"
-                className="w-full"
-              >
-                I already have account
-              </Button>
+              {/* CTA buttons */}
+              <div className="w-full space-y-3">
+                <Button
+                  onClick={onCreateAccount}
+                  size="lg"
+                  className="w-full"
+                >
+                  Create new account
+                </Button>
+                <Button
+                  onClick={onLogin}
+                  variant="ghost"
+                  size="md"
+                  className="w-full"
+                >
+                  I already have account
+                </Button>
+              </div>
             </div>
           </div>
         </div>
