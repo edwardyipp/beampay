@@ -5,6 +5,7 @@ import { useWallet } from "@/context/WalletContext";
 import { useAuth } from "@/context/AuthContext";
 import { getCurrencySymbol, convertUsdToIdr } from "@/lib/currency-utils";
 import { cn } from "@/lib/utils";
+import { useWebHaptics } from "web-haptics/react";
 
 const MAX_TILT = 14;
 const GYRO_MAX = 8;
@@ -21,25 +22,29 @@ interface BalanceCardProps {
   demoBalance?: number;
   demoCurrency?: string;
   className?: string;
+  /** When true, shows the card back face (logo). Flip to false to animate to front. */
+  showBack?: boolean;
+  /** When true, tapping/clicking the card triggers a 360° horizontal spin. */
+  tappable?: boolean;
 }
 
 /** Public API — routes to ConnectedBalanceCard (context) or BalanceCardCore (demo) */
-export function BalanceCard({ demo, demoBalance, demoCurrency, className }: BalanceCardProps = {}) {
+export function BalanceCard({ demo, demoBalance, demoCurrency, className, showBack, tappable }: BalanceCardProps = {}) {
   if (demo) {
-    return <BalanceCardCore balance={demoBalance ?? 1250} userCurrency={demoCurrency ?? "USD"} className={className} />;
+    return <BalanceCardCore balance={demoBalance ?? 1250} userCurrency={demoCurrency ?? "USD"} className={className} showBack={showBack} tappable={tappable} />;
   }
-  return <ConnectedBalanceCard className={className} />;
+  return <ConnectedBalanceCard className={className} showBack={showBack} tappable={tappable} />;
 }
 
 /** Reads from WalletContext/AuthContext then delegates to BalanceCardCore */
-function ConnectedBalanceCard({ className }: { className?: string }) {
+function ConnectedBalanceCard({ className, showBack, tappable }: { className?: string; showBack?: boolean; tappable?: boolean }) {
   const { balance } = useWallet();
   const { currentUser } = useAuth();
-  return <BalanceCardCore balance={balance} userCurrency={currentUser?.currency || "USD"} className={className} />;
+  return <BalanceCardCore balance={balance} userCurrency={currentUser?.currency || "USD"} className={className} showBack={showBack} tappable={tappable} />;
 }
 
-/** Presentational card with 3D tilt — no context dependency */
-function BalanceCardCore({ balance, userCurrency, className }: { balance: number; userCurrency: string; className?: string }) {
+/** Presentational card with 3D tilt and flip — no context dependency */
+function BalanceCardCore({ balance, userCurrency, className, showBack = false, tappable = false }: { balance: number; userCurrency: string; className?: string; showBack?: boolean; tappable?: boolean }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
   const activeRef = useRef(false);
@@ -48,6 +53,31 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
 
   const [tilt, setTilt] = useState({ rotX: 0, rotY: 0, glareX: 50, glareY: 50 });
   const [active, setActive] = useState(false);
+
+  // ── Flip scale — zooms in on back face, zooms out to 1 on flip ─────────────
+  const [flipScale, setFlipScale] = useState(showBack ? 0.85 : 1);
+
+  useEffect(() => {
+    if (showBack) {
+      const t = setTimeout(() => setFlipScale(1.4), 50);
+      return () => clearTimeout(t);
+    } else {
+      setFlipScale(1);
+    }
+  }, [showBack]);
+
+  // ── Tap-to-spin (launcher page) ────────────────────────────────────────────
+  const { trigger } = useWebHaptics();
+  const [spinDelta, setSpinDelta] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
+
+  const handleCardClick = useCallback(() => {
+    if (!tappable || showBack) return;
+    trigger("success");
+    setIsSpinning(true);
+    setSpinDelta((prev) => prev + 360);
+    setTimeout(() => setIsSpinning(false), 1300);
+  }, [tappable, showBack, trigger]);
 
   // ── Currency / balance ──────────────────────────────────────────────────────
   const currencySymbol = getCurrencySymbol(userCurrency);
@@ -63,15 +93,12 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
     : `${currencySymbol}${balance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
   // ── Card background ─────────────────────────────────────────────────────────
-  const outerStyle = {
+  const frontBackground = {
     backgroundImage:
       "linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(236,255,168,0.7) 45%, rgba(227,255,125,0.8) 70%, rgba(217,255,81,0.9) 100%), url('/bg-mesh-01.png')",
     backgroundSize: "cover",
     backgroundPosition: "center",
     backgroundColor: "#c6fe1e",
-    boxShadow: active
-      ? "-4px 14px 56px 0px rgba(0,0,0,0.22)"
-      : "-2px 6px 40px 0px rgba(0,0,0,0.15)",
   };
 
   // ── Tilt helpers ──────────────────────────────────────────────────────────
@@ -124,21 +151,28 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
     return () => { gyroCleanupRef.current?.(); gyroCleanupRef.current = null; };
   }, [startGyro]);
 
-  // ── Mouse handlers ──────────────────────────────────────────────────────────
+  // ── Mouse handlers (disabled when showing back) ──────────────────────────────
   const handleMouseMove = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (rafRef.current !== null) return;
+      if (showBack || rafRef.current !== null) return;
       const { clientX, clientY } = e;
       rafRef.current = requestAnimationFrame(() => { rafRef.current = null; applyPointerTilt(clientX, clientY); });
     },
-    [applyPointerTilt]
+    [applyPointerTilt, showBack]
   );
-  const handleMouseEnter = useCallback(() => { activeRef.current = true; setActive(true); }, []);
-  const handleMouseLeave = useCallback(() => { activeRef.current = false; setActive(false); resetTilt(); }, [resetTilt]);
+  const handleMouseEnter = useCallback(() => {
+    if (showBack) return;
+    activeRef.current = true; setActive(true);
+  }, [showBack]);
+  const handleMouseLeave = useCallback(() => {
+    if (showBack) return;
+    activeRef.current = false; setActive(false); resetTilt();
+  }, [resetTilt, showBack]);
 
-  // ── Touch handlers ──────────────────────────────────────────────────────────
+  // ── Touch handlers (disabled when showing back) ──────────────────────────────
   const handleTouchStart = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
+      if (showBack) return;
       const touch = e.touches[0];
       activeRef.current = true;
       setActive(true);
@@ -148,29 +182,33 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
         DOE.requestPermission().then((state) => { if (state === "granted") startGyro(); }).catch(() => {});
       }
     },
-    [applyPointerTilt, startGyro]
+    [applyPointerTilt, startGyro, showBack]
   );
   const handleTouchMove = useCallback(
     (e: React.TouchEvent<HTMLDivElement>) => {
-      if (rafRef.current !== null) return;
+      if (showBack || rafRef.current !== null) return;
       const touch = e.touches[0];
       const { clientX, clientY } = touch;
       rafRef.current = requestAnimationFrame(() => { rafRef.current = null; applyPointerTilt(clientX, clientY); });
     },
-    [applyPointerTilt]
+    [applyPointerTilt, showBack]
   );
-  const handleTouchEnd = useCallback(() => { activeRef.current = false; setActive(false); resetTilt(); }, [resetTilt]);
+  const handleTouchEnd = useCallback(() => {
+    if (showBack) return;
+    activeRef.current = false; setActive(false); resetTilt();
+  }, [resetTilt, showBack]);
 
   // ── Derived styles ──────────────────────────────────────────────────────────
-  const transformStyle: React.CSSProperties = {
+  const frontTransform: React.CSSProperties = {
     transform: `perspective(${PERSPECTIVE}px) rotateX(${tilt.rotX}deg) rotateY(${tilt.rotY}deg) scale3d(${active ? SCALE_ACTIVE : 1}, ${active ? SCALE_ACTIVE : 1}, 1)`,
     transition: active
       ? "none"
-      : "transform 0.55s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.55s cubic-bezier(0.23, 1, 0.32, 1)",
+      : "transform 0.55s cubic-bezier(0.23, 1, 0.32, 1)",
     willChange: "transform",
-    transformStyle: "preserve-3d",
-    userSelect: "none",
-    WebkitUserSelect: "none",
+    transformStyle: "preserve-3d" as const,
+    boxShadow: active
+      ? "-4px 14px 56px 0px rgba(0,0,0,0.22)"
+      : "-2px 6px 40px 0px rgba(0,0,0,0.15)",
   };
 
   const glareStyle: React.CSSProperties = {
@@ -194,31 +232,86 @@ function BalanceCardCore({ balance, userCurrency, className }: { balance: number
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchEnd}
-      className={cn("rounded-xl p-[1px] aspect-[1.586] cursor-default", className)}
-      style={{ ...outerStyle, ...transformStyle }}
+      onClick={handleCardClick}
+      className={cn("aspect-[1.586]", tappable && !showBack ? "cursor-pointer" : "cursor-default", className)}
+      style={{ perspective: "1200px", userSelect: "none", WebkitUserSelect: "none" }}
     >
-      <div className="rounded-[17px] h-full flex flex-col justify-between relative"
-           style={{ transformStyle: "preserve-3d" }}>
-        <div style={glareStyle} aria-hidden />
+      {/* Flip card — rotates to reveal front/back */}
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "relative",
+          transformStyle: "preserve-3d",
+          transform: `rotateY(${(showBack ? 180 : 0) + spinDelta}deg) scale(${flipScale})`,
+          transition: showBack
+            ? "transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)"
+            : isSpinning
+              ? "transform 1.3s cubic-bezier(0.4, 0.0, 0.2, 1)"
+              : "transform 0.9s cubic-bezier(0.4, 0.0, 0.2, 1)",
+        }}
+      >
+        {/* ── Front face ── */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "17px",
+            padding: "1px",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            ...frontBackground,
+            ...frontTransform,
+          }}
+        >
+          <div
+            className="rounded-[17px] h-full flex flex-col justify-between relative"
+            style={{ transformStyle: "preserve-3d" }}
+          >
+            <div style={glareStyle} aria-hidden />
 
-        {/* Logo — top right */}
-        <div className="flex justify-end p-6" style={{ position: "relative", zIndex: 2, transform: "translateZ(40px)" }}>
-          <img
-            src="/beampay-logo.svg"
-            alt="BeamPay"
-            className="w-[100px]"
-            style={{ filter: "brightness(0)", opacity: 0.35 }}
-          />
+            {/* Logo — top right */}
+            <div className="flex justify-end p-6" style={{ position: "relative", zIndex: 2, transform: "translateZ(40px)" }}>
+              <img
+                src="/beampay-logo.svg"
+                alt="BeamPay"
+                className="w-[100px]"
+                style={{ filter: "brightness(0)", opacity: 0.35 }}
+              />
+            </div>
+
+            {/* Balance — bottom left */}
+            <div className="pl-[28px] pb-[22px] flex flex-col items-start" style={{ position: "relative", zIndex: 2, transform: "translateZ(60px)" }}>
+              <p className="text-base font-normal" style={{ color: "#618b00" }}>
+                {secondaryLabel}
+              </p>
+              <p className="font-semibold" style={{ fontSize: "48px", lineHeight: "56px", color: "#2a2b2e" }}>
+                {mainBalance}
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Balance — bottom left */}
-        <div className="pl-[28px] pb-[22px] flex flex-col items-start" style={{ position: "relative", zIndex: 2, transform: "translateZ(60px)" }}>
-          <p className="text-base font-normal" style={{ color: "#618b00" }}>
-            {secondaryLabel}
-          </p>
-          <p className="font-semibold" style={{ fontSize: "48px", lineHeight: "56px", color: "#2a2b2e" }}>
-            {mainBalance}
-          </p>
+        {/* ── Back face ── */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "17px",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+            transform: "rotateY(180deg)",
+            background: "var(--background)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src="/logo-beampay-neon.svg"
+            alt="BeamPay"
+            className="w-32 h-auto"
+          />
         </div>
       </div>
     </div>
