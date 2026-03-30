@@ -242,11 +242,10 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
     3: "Enter the code to confirm your email",
   };
 
-  const inputClasses =
-    "h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all duration-200";
+  const inputClasses = "";
 
   const codeInputClasses =
-    "w-14 h-16 text-center text-2xl font-bold bg-foreground/[0.07] border-foreground/10 text-foreground rounded-xl focus:border-primary/50 focus:ring-primary/20 transition-all duration-200";
+    "w-14 h-16 text-center text-2xl font-bold rounded-xl";
 
   const strength = getPasswordStrength(password);
 
@@ -263,7 +262,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
           </div>
           <div className="text-center space-y-1">
             <p className="text-lg font-semibold">Setting up your account...</p>
-            <p className="text-sm text-foreground/50">This won&apos;t take long</p>
+            <p className="text-foreground/50">This won&apos;t take long</p>
           </div>
         </div>
       </div>
@@ -277,7 +276,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            size="icon-lg"
+            size="icon-md"
             onClick={step === 1 ? onSwitchToLogin : handleBack}
             aria-label="Go back"
             className="shrink-0"
@@ -366,13 +365,15 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   </Button>
                   <p className="text-center text-muted-foreground">
                     Already have an account?{" "}
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
+                      size="md"
                       onClick={onSwitchToLogin}
-                      className="text-primary font-medium hover:underline"
+                      className="p-0 h-auto font-medium"
                     >
                       Log in
-                    </button>
+                    </Button>
                   </p>
                 </div>
               </div>
@@ -433,7 +434,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                         ))}
                       </div>
                       <p
-                        className={`text-xs transition-colors duration-200 ${
+                        className={`text-sm transition-colors duration-200 ${
                           strength.level <= 1
                             ? "text-red-400"
                             : strength.level === 2
@@ -503,7 +504,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   {password.length >= 6 &&
                     confirmPassword.length > 0 &&
                     password === confirmPassword && (
-                      <p className="text-xs text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
+                      <p className="text-sm text-green-400 flex items-center gap-1 animate-in fade-in duration-200">
                         <Check className="w-3 h-3" /> Passwords match
                       </p>
                     )}
@@ -513,10 +514,11 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   <Button
                     onClick={handleNext}
                     className="w-full"
+                    size="lg"
                   >
                     Continue
                   </Button>
-                  <p className="text-center text-xs text-muted-foreground leading-relaxed">
+                  <p className="text-center text-muted-foreground leading-relaxed">
                     By creating an account, you agree to our{" "}
                     <span className="text-primary/70">Terms of Service</span>{" "}
                     and{" "}
@@ -530,19 +532,19 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
             {step === 3 && (
               <div className="space-y-6 flex-1 flex flex-col">
                 <div className="text-center space-y-3">
-                  <p className="text-sm text-foreground/60">
+                  <p className="text-foreground/60">
                     We sent a code to{" "}
                     <span className="text-foreground font-medium">{email}</span>
                   </p>
                   <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-lg px-4 py-2.5">
-                    <span className="text-xs text-foreground/50">Demo code:</span>
+                    <span className="text-sm text-foreground/50">Demo code:</span>
                     <span className="text-lg font-bold tracking-[0.2em] text-primary">
                       {verificationCode}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <Label className="text-center block mb-3 text-foreground/80 text-sm">
+                  <Label className="text-center block mb-3 text-foreground/80">
                     Enter verification code
                   </Label>
                   <div className="flex justify-center gap-2.5">
@@ -569,6 +571,7 @@ export function SignupFlow({ onSwitchToLogin }: SignupFlowProps) {
                   <Button
                     onClick={handleNext}
                     className="w-full"
+                    size="lg"
                   >
                     Verify Email
                   </Button>

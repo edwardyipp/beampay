@@ -2,7 +2,7 @@
 
 ## Case Study Documentation
 
-This document tracks the implementation progress of BeamPay, a digital wallet application built with Next.js 14, TypeScript, and Tailwind CSS.
+This document tracks the implementation progress of BeamPay, a digital wallet application built with Next.js 16, TypeScript, and Tailwind CSS.
 
 ---
 
@@ -10,7 +10,7 @@ This document tracks the implementation progress of BeamPay, a digital wallet ap
 
 **Project Name**: BeamPay
 **Purpose**: Digital wallet mockup with authentication, balance management, top-up, send money, and transaction history
-**Tech Stack**: Next.js 14 (App Router), TypeScript, Tailwind CSS, shadcn/ui
+**Tech Stack**: Next.js 16 (App Router), TypeScript, Tailwind CSS v4, shadcn/ui, next-themes, web-haptics, Sonner
 **Development Approach**: Phased implementation with iterative feature additions
 
 ---
@@ -102,200 +102,164 @@ src/
 
 ---
 
-## Phase 2: Enhanced Authentication & Onboarding 🚧 IN PROGRESS
+## Phase 2: Enhanced Authentication, Onboarding & UX ✅ COMPLETED
 
-**Timeline**: Current development phase
-**Status**: Implementation started
-**Goal**: Professional onboarding flow with security features, dark mode, and enhanced UX
+**Timeline**: Second development phase
+**Status**: Fully implemented
 
-### Rebranding ✅ COMPLETED
+### Rebranding ✅
 
-**Date**: [Session Start]
-**Changes**:
 - App name changed from "Wallet App" to "BeamPay"
-- Updated `src/app/layout.tsx` metadata
-- Updated `src/components/Navbar.tsx` brand text
-- Updated `src/app/design-system/page.tsx` references
-- Updated `README.md` title and description
-
-**Files Modified**:
-- `/src/app/layout.tsx` — Changed title to "BeamPay", description to "Fast, secure digital wallet"
-- `/src/components/Navbar.tsx` — Changed brand link text to "BeamPay"
-- `/src/app/design-system/page.tsx` — Updated introduction paragraph
-- `/README.md` — Changed header from "# Wallet App" to "# BeamPay"
+- Updated metadata, navbar brand text, design system references, README
 
 ---
 
-### Core Infrastructure ✅ COMPLETED
+### Dark Mode ✅
 
-#### 1. Logo Component
-**File**: `src/components/Logo.tsx`
-**Purpose**: Reusable gradient text logo for consistent branding
-**Implementation**:
-```tsx
-export function Logo({ className = "" }: { className?: string }) {
-  return (
-    <span className={`font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent ${className}`}>
-      BeamPay
-    </span>
-  );
-}
-```
-**Usage**: Login page (text-3xl), Navbar (text-xl)
-
-#### 2. Helper Utilities
-
-**File**: `src/lib/validators.ts`
-**Functions**:
-- `validatePin(pin: string)` — Validates 4-digit PIN, rejects sequential patterns (1234, 4321) and repeated digits (0000)
-- `validateEmail(email: string)` — Email format validation
-- `validatePassword(password: string)` — Min 6 characters validation
-
-**File**: `src/lib/auth-utils.ts`
-**Functions**:
-- `generateVerificationCode()` — Generates random 6-digit code for email verification
-
-**File**: `src/lib/currency-utils.ts`
-**Functions**:
-- `getCurrencySymbol(currency: string)` — Maps currency code to symbol (USD → $, EUR → €, etc.)
-- `getCurrencyName(currency: string)` — Maps currency code to full name
-- `convertUsdToIdr(usdAmount: number)` — Converts USD to IDR (mocked exchange rate: 1 USD = 15,800 IDR)
-- `formatCurrency(amount: number, currency: string)` — Formats amount with symbol and locale
-
-**File**: `src/lib/user-utils.ts`
-**Functions**:
-- `getInitials(firstName: string, lastName: string)` — Extracts initials for default avatar (e.g., "JD" for John Doe)
-- `getFullName(firstName: string, lastName: string)` — Combines first and last name
+- `ThemeContext` wrapper around `next-themes`
+- Neon lime accent palette (hue 122.4 in OKLCH), dark background with subtle lime tint
+- `dark:` prefix used throughout all components
+- Theme toggle on dashboard header (`showThemeToggle` prop on `PageHeader`)
+- Settings > Appearance page with Light / Dark / System selector
 
 ---
 
-#### 3. Type System Updates ✅ COMPLETED
+### Security Features ✅
 
-**File**: `src/types/index.ts`
+- **PinVerificationModal**: 4-digit PIN entry, auto-advancing inputs, 3 attempts, 5-minute in-memory lockout with live countdown
+- **PinSetupModal**: Shown when a PIN-gated action is attempted and `user.pin === ""` — create + confirm PIN, then proceed
+- PIN-gated actions: Send Money, Change Password, Delete Account
 
-**Updated User Interface**:
+---
+
+### SignupFlow (3-Step Wizard) ✅
+
+Rendered on `/login` when user chooses "Create account":
+
+- **Step 1**: Email input — validates format and checks for duplicate registration
+- **Step 2**: Password + Confirm Password with 4-segment strength bar (weak/fair/good/strong) + requirements checklist + inline legal consent
+- **Step 3**: 6-digit email verification — code shown in UI, 6 auto-advancing inputs, paste support, auto-submit on correct code
+
+Post-verification: "Setting up your account..." animation → `parseNameFromEmail()` extracts first/last name → `signup()` creates user → redirect to `/dashboard`. PIN deferred to first PIN-gated action.
+
+---
+
+### LauncherScreen ✅
+
+Initial screen on `/login` before login/signup:
+
+- `loading` phase (2 s): `BalanceCard` shows back face in demo mode
+- `main` phase: card flips to front, glowing orb fades in, tagline + CTA buttons animate in
+- "Create account" (primary) → signup, "I already have account" (ghost) → login form
+
+---
+
+### Avatar System ✅
+
+- 8 preset SVG avatars in `public/avatars/` (`avatar-1.svg` … `avatar-8.svg`)
+- Custom image upload — converted to base64, stored in user record
+- Initials fallback if no avatar set
+- `updateProfilePicture(picture)` context method
+
+---
+
+### Security Info Page ✅
+
+- Route: `/security-info`
+- Shown after first login unless `security-info-dismissed-${userId}` exists in localStorage
+- Three feature cards (encryption, security by design, fraud protection)
+- Security reminders checklist
+- "Don't show this again" checkbox → sets dismissal flag
+
+---
+
+### Transactions Page ✅
+
+- Route: `/transactions`
+- Full transaction history (newest first)
+- PageHeader (title="Activities") + BottomNav (Activities active)
+- "View all" link on dashboard shows last 5; transactions page shows all
+
+---
+
+### Multi-Currency ✅
+
+- User selects currency during signup (default USD)
+- Balance displayed in user's currency + IDR equivalent (static rate: 1 USD = 15,800 IDR)
+- `formatCurrency(amount, currency)` handles locale-aware formatting (no decimals for JPY)
+
+---
+
+### Settings Architecture ✅
+
+Each setting is a dedicated sub-page with `SettingsPageWrapper` (auth check, back header, slide-in animation):
+
+| Route | Purpose |
+|-------|---------|
+| `/settings` | Hub — menu links to sub-pages + Log Out |
+| `/settings/profile` | Edit first/last name (email read-only) |
+| `/settings/appearance` | Light / Dark / System theme selector |
+| `/settings/security` | Change password (PIN-gated) |
+| `/settings/payment` | Manage saved cards |
+| `/settings/close-account` | Delete account (AlertDialog + PIN) |
+
+---
+
+### Drawer Navigation ✅
+
+`/transfer` and `/top-up` use `DrawerPage` — slide-up overlays (90vh, rounded top corners, backdrop). Implemented with Next.js Intercepting Routes (`@drawer` parallel slot) so the current page stays visible behind the backdrop during soft navigation.
+
+---
+
+### BottomNav & PageHeader ✅
+
+- **BottomNav**: Floating pill navigation (Home, Pay, Activities). Present on `/dashboard` and `/transactions` only.
+- **PageHeader**: Three modes — avatar mode (dashboard), title+back mode (settings sub-pages), title mode (transactions/settings hub).
+
+---
+
+### BalanceCard Enhancements ✅
+
+- 3D tilt effect (pointer/touch + DeviceOrientation API)
+- `translateZ()` on logo and balance text for depth
+- Demo mode (`demo` prop) for LauncherScreen — shows demo balance, no auth required
+
+---
+
+### Type System ✅
+
+**AuthContextType** current signatures:
 ```typescript
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;        // Changed from single 'name' field
-  lastName: string;         // New field
-  password: string;
-  pin: string;              // New: 4-digit security PIN
-  emailVerified: boolean;   // New: Step 4 verification flag
-  currency: string;         // New: User's preferred currency (USD, EUR, etc.)
-  profilePicture?: string;  // New: base64 or avatar ID
-  marketingConsent?: boolean;   // New: Step 1 checkbox
-  legalConsentDate?: string;    // New: Step 3 timestamp
-}
+signup(firstName, lastName, email, password, currency): Promise<void>
+changePassword(newPassword): Promise<boolean>   // PIN confirms identity before call
+setPin(pin): Promise<boolean>
+updateProfilePicture(picture): Promise<boolean>
+updateProfile(firstName, lastName, email): Promise<boolean>
 ```
-
-**New Interface - PinVerificationModalProps**:
-```typescript
-export interface PinVerificationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSuccess: () => void;
-  title: string;
-  description: string;
-}
-```
-
-**Updated AuthContextType**:
-- `signup()` signature changed:
-  - Old: `(name: string, email: string, password: string)`
-  - New: `(firstName, lastName, email, password, pin, currency, profilePicture?, marketingConsent?, legalConsentDate?)`
-- `updateProfile()` signature changed:
-  - Old: `(name: string, email: string)`
-  - New: `(firstName: string, lastName: string, email: string)`
 
 ---
 
-#### 4. Dependencies Installed ✅ COMPLETED
+## Phase 3: Light Mode Polish & UX Refinements ✅ COMPLETED
 
-**shadcn/ui Components**:
-```bash
-npx shadcn@latest add dialog
-```
-- Added: `src/components/ui/dialog.tsx`
-- Purpose: PIN verification modal, security info modal
+### Changes
 
-**npm Packages**:
-```bash
-npm install next-themes
-```
-- Package: `next-themes@^0.3.0`
-- Purpose: Dark mode support with system preference detection
+1. **Simplified password change flow**: Removed current password + confirm password fields from `ChangePasswordForm`. Now: single "New Password" field → PIN verification → `changePassword(newPassword)`.
 
----
+2. **Dashboard CTA buttons**: Switched from `asChild` + `<Link>` pattern to `variant="secondary"` + `onClick` + `router.push()`, consistent with other in-app navigation buttons.
 
-### Deployment Setup ✅ COMPLETED
+3. **Dark mode secondary tokens**: `--secondary: #213201` (neon-950), `--secondary-foreground: #D9FF51` (neon-300). Gives Transfer/Add Funds buttons a dark neon green look.
 
-**Git Repository**:
-- Initialized git in project root
-- Created `.gitignore` with `.claude` directory excluded
-- Initial commit with Phase 1 features:
-  ```
-  Initial BeamPay wallet app with Phase 1 features
+4. **Light mode accessibility**:
+   - `text-primary` (bright lime `#D9FF51`) is near-invisible on white — replaced with `text-neon-700 dark:text-primary` on all inline links and `variant="link"` buttons.
+   - Applied to: "Log in" (SignupFlow), "Create one" (login page), "Forgot password?" (login page), button `link` variant base style.
 
-  - Complete authentication system (mocked with localStorage)
-  - Balance management and display
-  - Top-up via credit card with saved card functionality
-  - Send money to other users
-  - Transaction history tracking
-  - Settings page with profile edit, password change, card management, and account deletion
-  - Responsive design inspired by localpay.asia
-  - Built with Next.js 14, TypeScript, Tailwind CSS, and shadcn/ui
-  ```
+5. **Input light mode**: `bg-white` background replaces `bg-transparent`. `neon-600` hover/focus border in light mode; `neon-400`/`neon-300` in dark mode.
 
-**GitHub Repository**: (User setting up)
-**Vercel Deployment**: (User setting up)
+6. **LauncherScreen tagline gradient**: Moved from inline `style` to Tailwind classes. Light: `from-neon-700 to-neon-500`. Dark: `from-neon-300 to-neon-400`.
 
----
+7. **Button `md` size**: `text-[15px]` → `text-base` (16px).
 
-## Upcoming Features (Phase 2 Remaining)
-
-### 🎨 Dark Mode
-- ThemeContext with next-themes
-- ThemeToggle component (sun/moon icon)
-- System preference detection
-- Per-user theme persistence
-- Dark mode color palette for all components
-
-### 🔐 Security Features
-- 4-digit PIN verification modal
-- PIN required for: send money, change email, change password, delete account
-- 3 attempts limit with 5-minute lockout
-- Auto-focus and auto-advance PIN input boxes
-
-### 📝 6-Step Onboarding Flow
-- Step 1: Email + marketing consent
-- Step 2: Password creation with confirmation
-- Step 3: First/Last name + legal consent
-- Step 4: Mock email verification (6-digit code displayed + user input)
-- Step 5: Currency selection (USD, EUR, GBP, SGD, AUD, JPY)
-- Step 6: Profile picture upload/avatar selection + PIN creation
-
-### 🖼️ Avatar System
-- 8-10 default colorful avatars in `public/avatars/`
-- Custom image upload (max 2MB)
-- Default placeholder with initials
-
-### 🛡️ Security Information Page
-- Post-signup/login informational page
-- Security features explanation (encryption, fraud protection)
-- Security reminders (don't share PIN, verify recipients, etc.)
-- "Don't show again" checkbox with localStorage persistence
-
-### 📊 Dedicated Transactions Page
-- Full-page transaction history at `/transactions`
-- Dashboard shows only last 3 transactions
-- "View All →" link from dashboard
-
-### 💱 Multi-Currency Support
-- Balance display with USD + IDR equivalent
-- Currency symbols in transaction history
-- User-selected default currency
+8. **Font weight consistency**: All inline link buttons use `font-medium` (overrides base `font-semibold`).
 
 ---
 
@@ -303,19 +267,19 @@ npm install next-themes
 
 ### Data Persistence Strategy
 - **localStorage** for MVP simplicity
-- **Per-user data keying**: `wallet-data-{userId}`, `users`, `currentUserId`
+- **Per-user data keying**: `wallet_${userId}`, `users`, `currentUserId`
 - **Migration path**: Designed with future API integration in mind (context pattern allows easy backend swap)
 
 ### State Management
 - **React Context API** for global state
-- **AuthContext**: User session, login, signup, profile updates
+- **AuthContext**: User session, login, signup, profile updates, password change, PIN, profile picture
 - **WalletContext**: Balance, transactions, saved cards
-- **ThemeContext** (upcoming): Dark mode preference
+- **ThemeContext**: Dark mode preference via next-themes
 
 ### Component Architecture
 - **Atomic design principles**: Small, reusable components
 - **shadcn/ui base**: Consistent styling, accessibility built-in
-- **Form components**: Separated concerns (TopUpForm, SendForm, EditProfileForm, etc.)
+- **Form components**: Separated concerns (TopUpForm, SendForm, EditProfileForm, ChangePasswordForm, etc.)
 
 ### Type Safety
 - **Strict TypeScript**: All components, contexts, and utilities fully typed
@@ -332,67 +296,59 @@ npm install next-themes
 3. **Context pattern is powerful** — Easy to add features without prop drilling
 4. **Toast notifications enhance UX** — Immediate feedback for user actions
 
-### Phase 2 (In Progress)
+### Phase 2
 1. **Multi-step forms require careful state management** — Back navigation needs preserved data
 2. **PIN validation complexity** — Multiple edge cases (sequential, repeated, etc.)
 3. **Type system evolution** — Breaking changes managed with systematic refactoring
-4. **Documentation is crucial** — This log helps track decisions and progress
+4. **Intercepting Routes are elegant** — Drawer UX without complex state management
+
+### Phase 3
+1. **`text-primary` is theme-dependent** — Always check light mode readability for accent colors
+2. **`asChild` + `<Link>` is correct but not always necessary** — For in-app navigation, `onClick` + `router.push()` is simpler and more consistent
+3. **Double verification is friction** — PIN already confirms identity; current password field added no security value
 
 ---
 
 ## Success Metrics
 
-### Phase 1
+### Phase 1 ✅
 - ✅ Full authentication flow working
 - ✅ All wallet operations functional
 - ✅ Responsive on mobile and desktop
 - ✅ No TypeScript errors
 - ✅ Clean, maintainable codebase
 
-### Phase 2 (Goals)
-- [ ] 6-step onboarding fully functional
-- [ ] Dark mode on all pages
-- [ ] PIN verification on sensitive actions
-- [ ] Transaction history page
-- [ ] Multi-currency display
-- [ ] Case study documentation complete
+### Phase 2 ✅
+- ✅ 3-step onboarding fully functional
+- ✅ Dark mode on all pages
+- ✅ PIN verification on sensitive actions
+- ✅ Transaction history page
+- ✅ Multi-currency display
+
+### Phase 3 ✅
+- ✅ Light mode accessibility (link colors, input backgrounds, focus rings)
+- ✅ Consistent button patterns across the app
+- ✅ Simplified password change UX
 
 ---
 
-## Next Steps
-
-1. **Complete ThemeContext and ThemeToggle**
-2. **Create PinVerificationModal component**
-3. **Build SignupFlow component** (6 steps)
-4. **Update AuthContext** with new signup signature
-5. **Refactor login page** to use LoginForm + SignupFlow
-6. **Create avatar library**
-7. **Build Security Information page**
-8. **Create Transactions page**
-9. **Update existing forms** with PIN verification
-10. **Update profile forms** to use firstName/lastName
-11. **Add IDR conversion** to BalanceCard
-12. **End-to-end testing**
-
----
-
-## Future Enhancements (Post-Phase 2)
+## Future Enhancements
 
 - Real backend API integration
-- Actual payment gateway (Stripe)
+- Actual payment gateway (Stripe, Midtrans)
 - Email verification via real email service
 - Two-factor authentication
 - Social login (Google, Apple)
-- Password strength meter
-- Animated step transitions
-- Custom domain deployment
-- React Native/Expo mobile apps
+- Hash passwords with bcrypt
+- JWT/session auth (NextAuth.js)
+- Live currency exchange rate API
+- Jest + React Testing Library
+- React Native/Expo mobile app
 
 ---
 
-## Documentation Updates
+## Documentation
 
-**Last Updated**: [Auto-updated during implementation]
+**Last Updated**: 2026-03-30
 **Maintained By**: Development team
 **Purpose**: Case study reference, onboarding documentation, technical decision log
-

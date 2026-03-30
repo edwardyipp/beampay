@@ -195,20 +195,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const changePassword = async (
-    currentPassword: string,
-    newPassword: string
-  ): Promise<boolean> => {
+  const changePassword = async (newPassword: string): Promise<boolean> => {
     if (!currentUser) return false;
 
     try {
-      // Verify current password
-      if (currentUser.password !== currentPassword) {
-        toast.error("Current password is incorrect");
-        return false;
-      }
-
-      // Update password
       const users = JSON.parse(localStorage.getItem("users") || "[]");
       const updatedUsers = users.map((u: User) =>
         u.id === currentUser.id ? { ...u, password: newPassword } : u

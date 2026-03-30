@@ -95,7 +95,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="mt-8">
-            <Button variant="outline" onClick={logout} className="w-full">
+            <Button variant="outline" onClick={logout} size="lg" className="w-full">
               <LogOut className="w-4 h-4" />
               Log Out
             </Button>

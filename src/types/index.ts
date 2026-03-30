@@ -46,10 +46,7 @@ export interface AuthContextType {
   ) => Promise<boolean>;
   logout: () => void;
   updateProfile: (firstName: string, lastName: string, email: string) => Promise<boolean>;
-  changePassword: (
-    currentPassword: string,
-    newPassword: string
-  ) => Promise<boolean>;
+  changePassword: (newPassword: string) => Promise<boolean>;
   deleteAccount: () => void;
   setPin: (pin: string) => Promise<boolean>;
   updateProfilePicture: (picture: string) => Promise<boolean>;

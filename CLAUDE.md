@@ -19,6 +19,7 @@ The app allows users to register, top up a balance, send money to other register
 | Icons | Lucide React |
 | Theming | next-themes |
 | Notifications | Sonner (toast system) |
+| Haptics | web-haptics (haptic feedback on interactions) |
 | State | React Context API |
 | Persistence | Browser `localStorage` |
 
@@ -124,11 +125,12 @@ interface WalletData {
 ### AuthContext
 
 ```typescript
-const { user, login, signup, logout, updateProfile, changePassword, deleteAccount, setPin, updateProfilePicture } = useAuth();
+const { currentUser, login, signup, logout, updateProfile, changePassword, deleteAccount, setPin, updateProfilePicture } = useAuth();
 ```
 
-- `user` is `null` when logged out; pages redirect via `useRouter` if unauthenticated.
+- `currentUser` is `null` when logged out; pages redirect via `useRouter` if unauthenticated.
 - `signup(firstName, lastName, email, password, currency)` — creates a new user with no PIN, profile picture, or marketing consent. PIN and profile picture are set later via dedicated methods.
+- `changePassword(newPassword)` — updates the user's password. Takes only the new password; identity is confirmed separately via PIN verification before this is called.
 - `setPin(pin)` — sets or updates the user's 4-digit PIN.
 - `updateProfilePicture(picture)` — sets or updates the user's profile picture (avatar key or base64 data URI).
 - A migration helper in the context upgrades Phase-1 user records that may lack newer fields.
@@ -150,6 +152,19 @@ Thin wrapper around `next-themes`. Components use Tailwind's `dark:` prefix for 
 ---
 
 ## Key Components
+
+### LauncherScreen (`src/components/LauncherScreen.tsx`)
+
+Initial screen rendered on `/login` before the user chooses to log in or sign up.
+
+- Two phases: `loading` (2 s) → `main`
+- `loading`: `BalanceCard` displays its back face (demo mode)
+- `main`: Card flips to front face, glowing orb fades in behind it, tagline + CTA buttons fade in
+- Tagline gradient uses `neon-700`→`neon-500` in light mode, `neon-300`→`neon-400` in dark mode
+- CTA buttons: "Create account" (`primary`) → calls `onCreateAccount` prop; "I already have account" (`ghost`) → calls `onLogin` prop
+- Haptic feedback is handled automatically by the `Button` component
+
+Props: `onCreateAccount: () => void`, `onLogin: () => void`
 
 ### SignupFlow (`src/components/SignupFlow.tsx`)
 
@@ -215,6 +230,8 @@ Triggered when a PIN-gated action is attempted and the user has no PIN set (`use
 - On success: saves PIN via `setPin()` context method, then proceeds with the original action
 - Used as a guard in SendForm, DeleteAccountSection, and ChangePasswordForm (NOT used in EditProfileForm — email is read-only so no PIN-gated action exists there)
 
+**ChangePasswordForm** (`src/components/ChangePasswordForm.tsx`) has a simplified flow: single "New Password" field (min 6 chars) → PIN verification → `changePassword(newPassword)`. The current password and confirm password fields were removed — PIN serves as the identity check.
+
 ### SettingsPageWrapper (`src/components/SettingsPageWrapper.tsx`)
 
 Reusable wrapper for settings sub-pages. Provides auth check + redirect, `PageHeader` with title and `backHref`, slide-in animation (`animate-in slide-in-from-right duration-200`), and consistent layout (`max-w-md mx-auto px-5 pb-10`). No BottomNav.
@@ -227,8 +244,8 @@ Displays the user's balance in their selected currency plus an IDR equivalent (s
 
 The following shadcn/ui primitives have been customized from their defaults:
 
-- **button.tsx**: `rounded-full` (pill shape), `h-12`, `font-semibold`, `cursor-pointer`, `active:scale-[0.98]` press feedback.
-- **input.tsx**: `rounded-xl`, `h-12`, `px-4`, `transition-all duration-200` for smooth focus transitions.
+- **button.tsx**: `rounded-full` (pill shape), `font-semibold`, `cursor-pointer`, `active:scale-[0.98]` press feedback. Integrates `web-haptics` — triggers `"success"` haptic on click when `variant="primary"`. Default variant is `primary` (not `default`). Sizes: `xs`, `sm`, `md` (h-[42px], text-base/16px), `lg` (h-14), `icon-xs/sm/md/lg`. Variants: `primary`, `destructive`, `outline`, `secondary`, `ghost`, `link`. The `link` variant uses `text-neon-700 dark:text-primary` for light mode readability (bare `text-primary` is bright lime and near-invisible on white).
+- **input.tsx**: `rounded-xl`, `h-12`, `px-4`, `bg-white` (light mode), `dark:bg-input/30` (dark mode), `transition-all duration-200`. Focus/hover borders: `neon-600` in light mode, `neon-300` in dark mode.
 
 These are intentional overrides to match the BeamPay design language. When regenerating via `npx shadcn@latest add`, these customizations will be lost and must be re-applied.
 
@@ -325,6 +342,7 @@ Place in `src/components/`. Use the `cn()` helper for conditional Tailwind class
 - Follow the existing spacing/color scale — do not introduce arbitrary values unless necessary.
 - **Always use CSS variable-based Tailwind classes** (`bg-background`, `bg-card`, `bg-muted`, `text-foreground`, `text-muted-foreground`, `border-border`) instead of hardcoded palette classes (`bg-gray-900`, `text-gray-600`, `border-gray-700`). Hardcoded classes bypass the theme system and won't pick up dark mode colors.
 - **Semantic colors are the exception**: red (`text-red-600`, `bg-red-600`), green (`text-green-600`, `bg-green-100`), blue (`bg-blue-100`, `text-blue-600`), amber — when used for transaction type indicators, destructive actions, or status icons — are intentional and should stay hardcoded.
+- **Avoid bare `text-primary` on interactive text in light mode**: `--primary` is bright lime (`#D9FF51`) and is near-invisible on white. Use `text-neon-700 dark:text-primary` for inline links, `variant="link"` buttons, and any accent-colored text that must be readable in both modes.
 
 ### Components
 
@@ -364,6 +382,8 @@ The dark mode uses a **neon lime accent** palette (hue 122.4 in OKLCH). All CSS 
 | `--muted-foreground` | `oklch(0.7 0 0)` | De-emphasized text |
 | `--border` | `oklch(1 0 0 / 0.15)` | Translucent white border |
 | `--ring` | `oklch(0.93 0.26 122.4)` | Lime focus ring |
+| `--secondary` | `#213201` | Dark neon background (neon-950) |
+| `--secondary-foreground` | `#D9FF51` | Bright lime text on secondary (neon-300) |
 
 ### Custom primary variations (dark only)
 
