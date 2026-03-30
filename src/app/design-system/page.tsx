@@ -68,7 +68,7 @@ export default function DesignSystemPage() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
-              size="icon"
+              size="icon-md"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
               aria-label="Toggle theme"
             >

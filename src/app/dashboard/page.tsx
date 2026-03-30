@@ -58,26 +58,22 @@ export default function DashboardPage() {
         {/* Action Buttons — h-14 (56px), rounded-full (9999px), text-lg (18px), gap-3 (12px) */}
         <div className="grid grid-cols-2 gap-3 mt-4">
           <Button
-            asChild
+            variant="secondary"
             size="lg"
-            className="w-full bg-foreground text-background hover:bg-foreground/90 hover:scale-[1.01] hover:shadow-lg active:scale-95 active:shadow-none"
-            onClick={() => trigger("success")}
+            className="w-full"
+            onClick={() => { trigger("success"); router.push("/transfer"); }}
           >
-            <Link href="/transfer">
-              <ArrowRightLeft />
-              Transfer
-            </Link>
+            <ArrowRightLeft />
+            Transfer
           </Button>
           <Button
-            asChild
+            variant="secondary"
             size="lg"
-            className="w-full bg-foreground text-background hover:bg-foreground/90 hover:scale-[1.01] hover:shadow-lg active:scale-95 active:shadow-none"
-            onClick={() => trigger("success")}
+            className="w-full"
+            onClick={() => { trigger("success"); router.push("/top-up"); }}
           >
-            <Link href="/top-up">
-              <Plus />
-              Add Funds
-            </Link>
+            <Plus />
+            Add Funds
           </Button>
         </div>
 

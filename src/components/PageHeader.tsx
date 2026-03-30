@@ -31,7 +31,7 @@ export function PageHeader({ linkToSettings = true, title, backHref, showThemeTo
     return (
       <div className="flex items-center py-4 h-[76px]">
         <Link href={backHref} className="flex items-center gap-3">
-          <Button variant="outline" size="icon-lg" aria-label="Go back" asChild={false} tabIndex={-1}>
+          <Button variant="outline" size="icon-md" aria-label="Go back" asChild={false} tabIndex={-1}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <h1 className="font-semibold text-xl text-foreground tracking-tight">{title}</h1>
@@ -110,7 +110,7 @@ export function PageHeader({ linkToSettings = true, title, backHref, showThemeTo
   const themeToggle = showThemeToggle && mounted ? (
     <Button
       variant="ghost"
-      size="icon"
+      size="icon-md"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       aria-label="Toggle theme"
     >

@@ -57,7 +57,7 @@ export default function LoginPage() {
       <div className="px-5 pt-4 pb-2">
         <Button
           variant="outline"
-          size="icon-lg"
+          size="icon-md"
           onClick={() => setPhase("launcher")}
           aria-label="Go back"
         >
@@ -92,7 +92,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20"
+                className=""
               />
             </div>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
                   variant="link"
                   size="md"
                   onClick={handleForgotPassword}
-                  className="px-0 h-auto text-primary/70 hover:text-primary"
+                  className="px-0 h-auto font-medium text-neon-700/70 hover:text-neon-700 dark:text-primary/70 dark:hover:text-primary"
                 >
                   Forgot password?
                 </Button>
@@ -120,7 +120,7 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="h-12 bg-foreground/[0.07] border-foreground/10 text-foreground placeholder:text-foreground/30 rounded-xl focus:border-primary/50 focus:ring-primary/20 pr-11"
+                  className="pr-11"
                 />
                 <button
                   type="button"
@@ -155,7 +155,7 @@ export default function LoginPage() {
                 variant="link"
                 size="md"
                 onClick={() => setPhase("signup")}
-                className="px-0 h-auto"
+                className="px-0 h-auto font-medium"
               >
                 Create one
               </Button>

@@ -25,7 +25,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
     <div className="fixed inset-0 overflow-hidden bg-background">
       <div className="absolute inset-0 flex flex-col">
         {/* Card area — centered with lime glow behind */}
-        <div className="flex-1 relative flex items-center justify-center px-6">
+        <div className="flex-1 relative flex items-center justify-center px-4">
           {/* Glowing orb — only visible after flip */}
           <div
             className={cn(
@@ -54,7 +54,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
         {/* Bottom content — tagline + CTA, fades in after flip */}
         <div
           className={cn(
-            "flex flex-col items-center px-6 pb-10",
+            "flex flex-col items-center px-4 pb-10",
             phase === "main" ? "launcher-cta-fade" : "opacity-0 pointer-events-none"
           )}
         >
@@ -66,16 +66,8 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
                 <br />
                 easy top-ups, and secure payments.
               </p>
-              <h1 className="mt-2 text-4xl font-bold leading-tight">
-                <span
-                  style={{
-                    background: `linear-gradient(90deg, var(--color-neon-300), var(--color-neon-400))`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                  }}
-                >
-                  Pay anyone, instantly.
-                </span>
+              <h1 className="mt-2 text-4xl font-bold leading-tight bg-gradient-to-r from-neon-700 to-neon-500 dark:from-neon-300 dark:to-neon-400 bg-clip-text text-transparent">
+                Pay anyone, instantly.
               </h1>
             </div>
 
@@ -86,7 +78,7 @@ export function LauncherScreen({ onCreateAccount, onLogin }: LauncherScreenProps
                 size="lg"
                 className="w-full"
               >
-                Create new account
+                Create account
               </Button>
               <Button
                 onClick={onLogin}

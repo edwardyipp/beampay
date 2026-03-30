@@ -64,7 +64,7 @@ export function ButtonShowcase() {
             <span className="text-[10px] font-mono text-muted-foreground">icon-sm · 30px</span>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <Button size="icon"><Settings /></Button>
+            <Button size="icon-md"><Settings /></Button>
             <span className="text-[10px] font-mono text-muted-foreground">icon · 42px</span>
           </div>
           <div className="flex flex-col items-center gap-2">

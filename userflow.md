@@ -34,12 +34,14 @@ Avatar shows: uploaded photo (base64), preset SVG (`/avatars/{id}.svg`), or init
 
 ```mermaid
 flowchart TD
-    ROOT["/  Auth Gate"] -->|no session| LOGIN["/login"]
+    ROOT["/  Auth Gate"] -->|no session| LAUNCHER["LauncherScreen\n(on /login)"]
     ROOT -->|session exists| DASH["/dashboard"]
+
+    LAUNCHER -->|Create account| SIGNUP["SignupFlow\n(rendered on /login)"]
+    LAUNCHER -->|I already have account| LOGIN["Login Form\n(rendered on /login)"]
 
     LOGIN -->|Sign In — security-info not dismissed| SECINFO["/security-info"]
     LOGIN -->|Sign In — security-info dismissed| DASH
-    LOGIN -->|Click Sign up| SIGNUP["SignupFlow\n(rendered on /login)"]
     SIGNUP -->|Account created| DASH
 
     DASH -->|Transfer button| TRANSFER["/transfer"]
@@ -116,19 +118,26 @@ flowchart LR
 
 **Layout:** None (public page)
 **Auth guard:** No
-**Components:** Login form (inline), `SignupFlow` (conditional)
+**Components:** `LauncherScreen`, `BalanceCard` (demo mode), Login form (inline), `SignupFlow` (conditional)
 
-**UI elements — Login state:**
-- Logo (BeamPay wordmark, gradient)
+Three phases controlled by `LoginPagePhase` state: `"launcher"` (default) → `"login"` or `"signup"`.
+
+**UI elements — Launcher phase (`LauncherScreen`):**
+- `BalanceCard` in demo mode (shows demo balance, flips from back to front after 2 s)
+- Glowing orb behind card, tagline ("Pay anyone, instantly." — neon gradient text)
+- "Create account" primary button → switches to signup phase
+- "I already have account" ghost button → switches to login phase
+
+**UI elements — Login phase:**
 - "Welcome back" heading
 - Email input
-- Password input
-- "Forgot password?" button — shows info toast, no actual reset
-- "Sign In" submit button with loading state ("Please wait…")
-- "Sign up" toggle link → switches to SignupFlow
+- Password input with show/hide toggle
+- "Forgot password?" link button — shows info toast, no actual reset
+- "Sign In" submit button with loading state ("Signing in…")
+- "Don't have an account? Create one" link → switches to signup phase
 
-**UI elements — SignupFlow state:**
-- Step 1: Email input, Continue button, "Sign in" back link. Validates email format AND checks for duplicate registration.
+**UI elements — Signup phase (`SignupFlow`):**
+- Step 1: Email input, Continue button, "Already have an account? Log in" link. Validates email format AND checks for duplicate registration.
 - Step 2: Password + Confirm Password inputs with strength bar (4-segment: weak/fair/good/strong) + requirements checklist + inline legal consent text below Continue
 - Step 3: 6-digit code displayed in a highlighted card; 6 auto-advancing digit inputs with paste support; auto-submit on correct code completion; "Verify Email" button
 - Post-verification: "Setting up your account..." full-screen animation → name parsed from email → account created → redirect to /dashboard
@@ -148,7 +157,7 @@ flowchart LR
 **UI elements:**
 - Header: avatar (44×44 px, links to `/settings`), display name, theme toggle button (moon/sun, 44×44 px circle, top-right)
 - `BalanceCard`: 3D tilt card (gyroscope + pointer/touch, `translateZ` for logo/balance pop); primary currency balance + IDR equivalent; always uses light mode lime gradient styling regardless of theme
-- Two CTA buttons (2-col grid): Transfer (ArrowRightLeft icon) → `/transfer`; Add Funds (Plus icon) → `/top-up`. Hover: scale 1.01×, opacity 0.9, shadow. Active: scale 0.95, opacity 0.8
+- Two CTA buttons (2-col grid, `variant="secondary"`): Transfer (ArrowRightLeft icon) → `/transfer`; Add Funds (Plus icon) → `/top-up`. Each uses `onClick` with `router.push()` and haptic feedback.
 - Activities section: "Activities" title + "View all" link → `/transactions`; last 5 transactions with coloured avatars, amounts in USD + IDR
 - Empty state: "No transactions yet"
 
@@ -289,8 +298,8 @@ Each item shows: colored icon in rounded background, label + description, chevro
 **Components:** `SettingsPageWrapper`, `ChangePasswordForm`
 
 **UI elements:**
-- Current Password, New Password (min 6 chars), Confirm New Password inputs
-- "Change Password" button → always requires PIN
+- New Password input (min 6 chars)
+- "Change Password" button → PIN verification → password updated. Current password and confirm fields were removed; PIN serves as identity confirmation.
 
 ---
 
@@ -368,9 +377,10 @@ Each item shows: colored icon in rounded background, label + description, chevro
 
 ### 2. Returning Login
 
-1. Visit `/login`, enter email + password → `login()` checks `users[]` (plain-text comparison)
-2. On match: sets `currentUserId`, runs migration helper for legacy accounts
-3. If `security-info-dismissed-${id}` exists → `/dashboard`; otherwise → `/security-info` → `/dashboard`
+1. Visit `/login` → LauncherScreen (card flip animation) → click "I already have account" → login form
+2. Enter email + password → `login()` checks `users[]` (plain-text comparison)
+3. On match: sets `currentUserId`, runs migration helper for legacy accounts
+4. If `security-info-dismissed-${id}` exists → `/dashboard`; otherwise → `/security-info` → `/dashboard`
 
 ### 3. Top Up
 

@@ -18,7 +18,7 @@ function MockPageHeader({
           </div>
           <span className="font-semibold text-sm text-foreground">John</span>
         </div>
-        <Button size="icon" variant="ghost">
+        <Button size="icon-md" variant="ghost">
           <Moon className="w-4 h-4" />
         </Button>
       </div>
@@ -29,7 +29,7 @@ function MockPageHeader({
     return (
       <div className="flex items-center gap-3 py-4 px-5 bg-card border-b border-border">
         <Button size="icon-sm" variant="ghost" className="rounded-full">
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft className="w-5 h-5" />
         </Button>
         <h1 className="text-base font-semibold text-foreground">Settings</h1>
       </div>
@@ -92,7 +92,7 @@ export function PageHeaderDemo() {
             <p className="text-xs font-medium text-foreground">Appearance</p>
             <p className="text-[11px] text-muted-foreground">Light, dark, or system theme</p>
           </div>
-          <ArrowLeft className="w-4 h-4 text-muted-foreground ml-auto rotate-180" />
+          <ArrowLeft className="w-5 h-5 text-muted-foreground ml-auto rotate-180" />
         </div>
       </div>
     </SectionWrapper>
